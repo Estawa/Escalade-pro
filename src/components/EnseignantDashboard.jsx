@@ -1,16 +1,19 @@
 import { useEffect, useMemo, useState } from 'react'
 import {
   Upload, ChevronDown, ChevronUp, KeyRound, UserX, Pencil, UserPlus,
-  FolderPlus, FolderX, Check, X, ClipboardList
+  FolderPlus, FolderX, Check, X, ClipboardList, Mountain
 } from 'lucide-react'
 import Referentiel from './Referentiel.jsx'
 import ImportEleves from './ImportEleves.jsx'
 import EvaluationProf from './EvaluationProf.jsx'
+import SuiviEleveProf from './SuiviEleveProf.jsx'
+import VoiesConfig from './VoiesConfig.jsx'
+import ChangerPin from './ChangerPin.jsx'
 import { storage } from '../utils/storage.js'
-import { loadAllEvaluations, cleEvaluation } from '../firebase.js'
+import { loadAllEvaluations, cleEvaluation, loadAllPassages } from '../firebase.js'
 
 export default function EnseignantDashboard({ videos, onSaveVideo, onRemovePhase }) {
-  const [onglet, setOnglet] = useState('referentiel') // referentiel | suivi
+  const [onglet, setOnglet] = useState('referentiel') // referentiel | voies | suivi
   const [importOuvert, setImportOuvert] = useState(false)
   const [rosterVersion, setRosterVersion] = useState(0)
   const [classeSelectionnee, setClasseSelectionnee] = useState(null)
@@ -26,10 +29,12 @@ export default function EnseignantDashboard({ videos, onSaveVideo, onRemovePhase
   const [nouvelleClasseOuverte, setNouvelleClasseOuverte] = useState(false)
   const [nouvelleClasseNom, setNouvelleClasseNom] = useState('')
   const [evaluations, setEvaluations] = useState({})
-  const [evalEnCoursPour, setEvalEnCoursPour] = useState(null)
+  const [passagesParEleve, setPassagesParEleve] = useState({})
+  const [panneauOuvertPour, setPanneauOuvertPour] = useState(null) // { id: eleveId, type: 'eval' | 'cycle' }
 
   useEffect(() => {
     loadAllEvaluations().then(setEvaluations).catch(() => {})
+    loadAllPassages().then(setPassagesParEleve).catch(() => {})
   }, [])
 
   const classes = useMemo(() => storage.getClasses(), [rosterVersion])
@@ -100,13 +105,15 @@ export default function EnseignantDashboard({ videos, onSaveVideo, onRemovePhase
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-6">
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-2 flex-wrap gap-2">
         <h2 className="font-display text-2xl text-roche-900">Espace enseignant</h2>
+        <ChangerPin />
       </div>
 
       <div className="flex gap-1.5 mb-6 bg-roche-50 rounded-full p-1 w-fit">
         {[
           { id: 'referentiel', label: 'Référentiel' },
+          { id: 'voies', label: 'Voies' },
           { id: 'suivi', label: 'Élèves & suivi' }
         ].map((o) => (
           <button
@@ -122,6 +129,8 @@ export default function EnseignantDashboard({ videos, onSaveVideo, onRemovePhase
       {onglet === 'referentiel' && (
         <Referentiel videos={videos} modeProf onSaveVideo={onSaveVideo} onRemovePhase={onRemovePhase} />
       )}
+
+      {onglet === 'voies' && <VoiesConfig />}
 
       {onglet === 'suivi' && (
         <section>
@@ -170,7 +179,7 @@ export default function EnseignantDashboard({ videos, onSaveVideo, onRemovePhase
                       setEleveOuvert(null)
                       setEleveEnEdition(null)
                       setAjoutEleveOuvert(false)
-                      setEvalEnCoursPour(null)
+                      setPanneauOuvertPour(null)
                     }}
                     className={`shrink-0 text-xs font-medium px-3 py-1.5 rounded-full border transition ${classeActive === c ? 'bg-roche-800 text-white border-roche-800' : 'border-roche-200 text-roche-600'}`}
                   >
@@ -231,7 +240,7 @@ export default function EnseignantDashboard({ videos, onSaveVideo, onRemovePhase
                       <button
                         onClick={() => {
                           setEleveOuvert(ouvert ? null : eleve.id)
-                          setEvalEnCoursPour(null)
+                          setPanneauOuvertPour(null)
                         }}
                         className="w-full flex items-center justify-between px-4 py-3"
                       >
@@ -244,7 +253,9 @@ export default function EnseignantDashboard({ videos, onSaveVideo, onRemovePhase
                             {evalExistante?.scoreEleve !== undefined && `Auto-éval ${evalExistante.scoreEleve}%`}
                             {evalExistante?.scoreEleve !== undefined && evalExistante?.scoreProf !== undefined && ' · '}
                             {evalExistante?.scoreProf !== undefined && `Note prof ${evalExistante.scoreProf}/20`}
-                            {evalExistante?.scoreEleve === undefined && evalExistante?.scoreProf === undefined && 'Pas encore évalué'}
+                            {evalExistante?.noteCycle != null && ` · Cycle ${evalExistante.noteCycle}/20`}
+                            {evalExistante?.scoreEleve === undefined && evalExistante?.scoreProf === undefined && evalExistante?.noteCycle == null && 'Pas encore évalué'}
+                            {' · '}{(passagesParEleve[cleEvaluation(eleveComplet)] || []).length} passage{(passagesParEleve[cleEvaluation(eleveComplet)] || []).length > 1 ? 's' : ''}
                             {!eleve.pin && ' · PIN non défini'}
                           </p>
                         </div>
@@ -305,10 +316,16 @@ export default function EnseignantDashboard({ videos, onSaveVideo, onRemovePhase
                               <KeyRound size={12} /> Réinitialiser le PIN
                             </button>
                             <button
-                              onClick={() => setEvalEnCoursPour(evalEnCoursPour === eleve.id ? null : eleve.id)}
+                              onClick={() => setPanneauOuvertPour(panneauOuvertPour?.id === eleve.id && panneauOuvertPour?.type === 'eval' ? null : { id: eleve.id, type: 'eval' })}
                               className="flex items-center gap-1 text-[11px] font-medium text-roche-700 border border-roche-200 rounded-full px-2.5 py-1 hover:bg-white"
                             >
-                              <ClipboardList size={12} /> {evalEnCoursPour === eleve.id ? 'Fermer' : 'Évaluer'}
+                              <ClipboardList size={12} /> {panneauOuvertPour?.id === eleve.id && panneauOuvertPour?.type === 'eval' ? 'Fermer' : 'Évaluer (référentiel)'}
+                            </button>
+                            <button
+                              onClick={() => setPanneauOuvertPour(panneauOuvertPour?.id === eleve.id && panneauOuvertPour?.type === 'cycle' ? null : { id: eleve.id, type: 'cycle' })}
+                              className="flex items-center gap-1 text-[11px] font-medium text-roche-700 border border-roche-200 rounded-full px-2.5 py-1 hover:bg-white"
+                            >
+                              <Mountain size={12} /> {panneauOuvertPour?.id === eleve.id && panneauOuvertPour?.type === 'cycle' ? 'Fermer' : 'Suivi de cycle'}
                             </button>
                             <button
                               onClick={() => supprimerEleve(eleve.id)}
@@ -318,10 +335,23 @@ export default function EnseignantDashboard({ videos, onSaveVideo, onRemovePhase
                             </button>
                           </div>
 
-                          {evalEnCoursPour === eleve.id && (
+                          {panneauOuvertPour?.id === eleve.id && panneauOuvertPour?.type === 'eval' && (
                             <div className="bg-white rounded-xl p-3">
                               <EvaluationProf
                                 eleve={eleveComplet}
+                                evaluationExistante={evalExistante}
+                                onEnregistre={(patch) =>
+                                  setEvaluations((ev) => ({ ...ev, [cleEvaluation(eleveComplet)]: { ...ev[cleEvaluation(eleveComplet)], ...patch } }))
+                                }
+                              />
+                            </div>
+                          )}
+
+                          {panneauOuvertPour?.id === eleve.id && panneauOuvertPour?.type === 'cycle' && (
+                            <div className="bg-white rounded-xl p-3">
+                              <SuiviEleveProf
+                                eleve={eleveComplet}
+                                passages={passagesParEleve[cleEvaluation(eleveComplet)] || []}
                                 evaluationExistante={evalExistante}
                                 onEnregistre={(patch) =>
                                   setEvaluations((ev) => ({ ...ev, [cleEvaluation(eleveComplet)]: { ...ev[cleEvaluation(eleveComplet)], ...patch } }))

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Lock } from 'lucide-react'
-import { PIN_ENSEIGNANT } from '../utils/storage'
+import { storage } from '../utils/storage'
 
 export default function EnseignantPin({ onValide }) {
   const [pin, setPin] = useState('')
@@ -8,7 +8,7 @@ export default function EnseignantPin({ onValide }) {
 
   function valider(e) {
     e.preventDefault()
-    if (pin === PIN_ENSEIGNANT) {
+    if (pin === storage.getPinEnseignant()) {
       onValide()
     } else {
       setErreur(true)

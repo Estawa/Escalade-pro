@@ -2,10 +2,12 @@ import { useEffect, useState } from 'react'
 import { styles } from '../styles.js'
 import Referentiel from './Referentiel.jsx'
 import EvaluationEleve from './EvaluationEleve.jsx'
+import SuiviCycle from './SuiviCycle.jsx'
 import { loadAllEvaluations, cleEvaluation } from '../firebase.js'
 
 export default function EspaceEleve({ eleve, videos, onDeconnexion }) {
-  const [onglet, setOnglet] = useState('referentiel')
+  const [ongletPrincipal, setOngletPrincipal] = useState('connaissance') // connaissance | suivi
+  const [sousOnglet, setSousOnglet] = useState('referentiel') // referentiel | evaluation
   const [evaluationExistante, setEvaluationExistante] = useState(null)
 
   useEffect(() => {
@@ -24,12 +26,22 @@ export default function EspaceEleve({ eleve, videos, onDeconnexion }) {
       </div>
 
       <div style={styles.ongletSwitch}>
-        <button style={onglet === 'referentiel' ? styles.ongletBtnActive : styles.ongletBtn} onClick={() => setOnglet('referentiel')}>Référentiel</button>
-        <button style={onglet === 'evaluation' ? styles.ongletBtnActive : styles.ongletBtn} onClick={() => setOnglet('evaluation')}>Ma auto-évaluation</button>
+        <button style={ongletPrincipal === 'connaissance' ? styles.ongletBtnActive : styles.ongletBtn} onClick={() => setOngletPrincipal('connaissance')}>Connaissance</button>
+        <button style={ongletPrincipal === 'suivi' ? styles.ongletBtnActive : styles.ongletBtn} onClick={() => setOngletPrincipal('suivi')}>Suivi de Cycle</button>
       </div>
 
-      {onglet === 'referentiel' && <Referentiel videos={videos} modeProf={false} />}
-      {onglet === 'evaluation' && <EvaluationEleve eleve={eleve} evaluationExistante={evaluationExistante} />}
+      {ongletPrincipal === 'connaissance' && (
+        <div>
+          <div style={styles.ongletSwitch}>
+            <button style={sousOnglet === 'referentiel' ? styles.ongletBtnActive : styles.ongletBtn} onClick={() => setSousOnglet('referentiel')}>Référentiel</button>
+            <button style={sousOnglet === 'evaluation' ? styles.ongletBtnActive : styles.ongletBtn} onClick={() => setSousOnglet('evaluation')}>Ma auto-évaluation</button>
+          </div>
+          {sousOnglet === 'referentiel' && <Referentiel videos={videos} modeProf={false} />}
+          {sousOnglet === 'evaluation' && <EvaluationEleve eleve={eleve} evaluationExistante={evaluationExistante} />}
+        </div>
+      )}
+
+      {ongletPrincipal === 'suivi' && <SuiviCycle eleve={eleve} />}
     </div>
   )
 }
