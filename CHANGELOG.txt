@@ -2,6 +2,51 @@ ESCALADE PRO — JOURNAL DES TRANSFORMATIONS
 By C. Guilhem
 ======================================
 
+v3.0.3 — Identifiants Firebase renseignés
+--------------------------------------
+- Le projet Firebase de Christophe (escalade-pro-3cd6d) n'avait en fait
+  jamais été configuré : c'était la cause réelle des enregistrements qui
+  ne se faisaient pas (voies, passages, mais aussi vidéos et
+  évaluations). Les vrais identifiants sont maintenant renseignés dans
+  `src/firebase.js`.
+- Rappel : la base Firestore doit être créée (pas Realtime Database) et
+  ses règles de sécurité doivent autoriser les 4 collections utilisées
+  (voir README).
+
+v3.0.2 — Rendre l'enregistrement d'un passage visible et fiable
+--------------------------------------
+- Après un audit complet du code d'enregistrement, aucune anomalie
+  logique n'a été trouvée dans le calcul de la difficulté ou dans
+  l'écriture du passage ; en revanche, si l'enregistrement échoue côté
+  serveur (le plus probable : règles de sécurité Firestore qui
+  n'autorisent pas encore les nouvelles collections `escalade_config` et
+  `escalade_passages` créées pour le Suivi de Cycle), l'échec pouvait
+  passer inaperçu. Voir le README pour les règles Firestore à vérifier.
+- Un passage apparaît désormais immédiatement dans l'historique de
+  l'élève dès qu'il clique sur "Enregistrer ce passage" (mise à jour
+  optimiste), avec un message de confirmation clair ("✓ Passage
+  enregistré : voie X en Y").
+- Si l'enregistrement échoue réellement côté serveur, le passage est
+  retiré de l'historique et un message d'erreur explicite s'affiche
+  ("le passage n'a PAS été sauvegardé"), au lieu d'échouer
+  silencieusement.
+- Mêmes garanties pour la suppression d'un passage et pour la case
+  "corde rangée en lovant" : réaction immédiate à l'écran, annulée
+  proprement en cas d'échec côté serveur.
+
+v3.0.1 — Correctif de lenteur sur "Suivi de Cycle"
+--------------------------------------
+- L'onglet "Suivi de Cycle" rechargeait entièrement les voies et
+  l'historique des passages à chaque fois qu'on cliquait dessus (recharge
+  serveur à chaque changement d'onglet). Ces données sont désormais
+  chargées une seule fois à la connexion de l'élève, puis conservées :
+  changer d'onglet est maintenant instantané.
+- La case "Corde rangée en lovant" faisait jusqu'à 4 allers-retours
+  serveur (suppression puis recréation du passage). Elle ne fait plus
+  qu'une seule mise à jour, avec réaction immédiate à l'écran.
+- La suppression d'un passage réagit aussi immédiatement à l'écran,
+  avant confirmation du serveur.
+
 v3.0.0 — Suivi de cycle sur les 17 voies et code enseignant modifiable
 --------------------------------------
 - Espace enseignant : nouvelle fonction "Modifier le code d'accès" (code

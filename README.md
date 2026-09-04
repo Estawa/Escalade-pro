@@ -12,12 +12,29 @@ npm run dev
 
 ## Avant le premier déploiement
 
-Complète tes identifiants Firebase dans `src/firebase.js`. Tu peux réutiliser le
-même projet Firebase que Gym Pro (deux collections dédiées sont utilisées :
-`escalade_videos` et `escalade_evaluations`), ou créer un projet Firebase séparé.
-Le référentiel (vidéos) et les évaluations restent sur Firebase ; les classes,
-élèves et codes PIN sont stockés localement sur l'appareil (comme dans Course de
-Durée Pro).
+Les identifiants Firebase du projet **escalade-pro-3cd6d** sont déjà renseignés
+dans `src/firebase.js` — rien à compléter ici. Le référentiel (vidéos) et les
+évaluations restent sur Firebase ; les classes, élèves et codes PIN sont
+stockés localement sur l'appareil (comme dans Course de Durée Pro).
+
+⚠️ Vérifie que les règles de sécurité Firestore (Console Firebase → Firestore
+Database → Règles, **pas** Realtime Database) autorisent bien les quatre
+collections utilisées par l'application :
+
+```
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /escalade_videos/{doc} { allow read, write: if true; }
+    match /escalade_evaluations/{doc} { allow read, write: if true; }
+    match /escalade_config/{doc} { allow read, write: if true; }
+    match /escalade_passages/{doc} { allow read, write: if true; }
+  }
+}
+```
+
+(Des règles ouvertes comme ci-dessus conviennent pour un usage en classe sans
+donnée sensible ; resserre-les si besoin.)
 
 Code d'accès enseignant par défaut : **4242**. Modifiable directement depuis
 l'application (bouton "Modifier le code d'accès" en haut de l'espace enseignant).
