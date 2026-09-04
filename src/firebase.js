@@ -1,17 +1,14 @@
 import { initializeApp } from "firebase/app";
 import { getFirestore, doc, setDoc, getDoc, collection, getDocs } from "firebase/firestore";
 
-// ⚠️ À COMPLÉTER : remplace ces valeurs par celles de ton projet Firebase
-// (Console Firebase > Paramètres du projet > Vos applications > Config SDK)
-// Tu peux réutiliser le même projet Firebase que Gym Pro / la version précédente
-// d'Escalade Pro, ou en créer un dédié.
+// Identifiants du projet Firebase de Christophe (escalade-pro-3cd6d).
 const firebaseConfig = {
-  apiKey: "VOTRE_API_KEY",
-  authDomain: "VOTRE_PROJET.firebaseapp.com",
-  projectId: "VOTRE_PROJET",
-  storageBucket: "VOTRE_PROJET.appspot.com",
-  messagingSenderId: "VOTRE_SENDER_ID",
-  appId: "VOTRE_APP_ID",
+  apiKey: "AIzaSyA26EYZxBR19deHR9XOazq-jZuJbFUr8-0",
+  authDomain: "escalade-pro-3cd6d.firebaseapp.com",
+  projectId: "escalade-pro-3cd6d",
+  storageBucket: "escalade-pro-3cd6d.firebasestorage.app",
+  messagingSenderId: "142024831600",
+  appId: "1:142024831600:web:c74fac40225679fb35fab5",
 };
 
 const app = initializeApp(firebaseConfig);
@@ -83,6 +80,17 @@ export async function ajouterPassage(eleve, passage) {
   const snap = await getDoc(ref);
   const liste = snap.exists() && Array.isArray(snap.data().liste) ? snap.data().liste : [];
   const nouvelleListe = [...liste, passage];
+  await setDoc(ref, { eleve, liste: nouvelleListe });
+  return nouvelleListe;
+}
+
+// Met à jour un passage existant en place (une seule lecture + une seule écriture),
+// utilisé par exemple pour cocher/décocher "corde rangée" sans recréer l'entrée.
+export async function modifierPassage(eleve, passageId, patch) {
+  const ref = doc(db, PASSAGES_COLLECTION, cleEvaluation(eleve));
+  const snap = await getDoc(ref);
+  const liste = snap.exists() && Array.isArray(snap.data().liste) ? snap.data().liste : [];
+  const nouvelleListe = liste.map((p) => (p.id === passageId ? { ...p, ...patch } : p));
   await setDoc(ref, { eleve, liste: nouvelleListe });
   return nouvelleListe;
 }
