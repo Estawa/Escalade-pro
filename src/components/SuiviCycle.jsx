@@ -1,8 +1,8 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import { Check, Trash2, Package } from 'lucide-react'
 import DifficulteSelect from './DifficulteSelect.jsx'
 import { formatDifficulte, parseDifficulte } from '../utils/difficulte.js'
-import { loadVoies, voiesParDefaut, loadPassagesEleve, ajouterPassage, supprimerPassage } from '../firebase.js'
+import { ajouterPassage, supprimerPassage, modifierPassage } from '../firebase.js'
 
 const MODES = ['Moulinette', 'Moulitête', 'Tête']
 const ROLES = ['Grimpeur', 'Assureur']
@@ -11,11 +11,13 @@ function idPassage() {
   return crypto.randomUUID ? crypto.randomUUID() : `p_${Date.now()}_${Math.random().toString(36).slice(2)}`
 }
 
-export default function SuiviCycle({ eleve }) {
-  const [voies, setVoies] = useState(voiesParDefaut())
-  const [passages, setPassages] = useState([])
-  const [chargement, setChargement] = useState(true)
+export default function SuiviCycle({ eleve, voies, passages, setPassages, chargement, erreurInitiale }) {
   const [erreur, setErreur] = useState('')
+  const [confirmation, setConfirmation] = useState('')
+
+  useEffect(() => {
+    if (erreurInitiale) setErreur(erreurInitiale)
+  }, [erreurInitiale])
 
   const [numeroVoie, setNumeroVoie] = useState(1)
   const [role, setRole] = useState('Grimpeur')
@@ -25,16 +27,7 @@ export default function SuiviCycle({ eleve }) {
   const [sommetAtteint, setSommetAtteint] = useState(true)
   const [mousqueton, setMousqueton] = useState('')
   const [cordeLovee, setCordeLovee] = useState(false)
-
-  useEffect(() => {
-    Promise.all([loadVoies(), loadPassagesEleve(eleve)])
-      .then(([v, p]) => {
-        setVoies(v)
-        setPassages(p)
-      })
-      .catch((e) => setErreur('Chargement impossible : ' + e.message))
-      .finally(() => setChargement(false))
-  }, [eleve])
+  const [enregistrement, setEnregistrement] = useState(false)
 
   const voieActive = useMemo(() => voies.find((v) => v.numero === Number(numeroVoie)), [voies, numeroVoie])
   const suggestion = voieActive ? voieActive.couleurs[nbCouleurs] : ''
@@ -46,13 +39,14 @@ export default function SuiviCycle({ eleve }) {
   async function enregistrerPassage(e) {
     e.preventDefault()
     setErreur('')
+    setConfirmation('')
     const diffStr = formatDifficulte(difficulte)
     if (!diffStr) {
-      setErreur('Indique la difficulté de la voie (chiffre + lettre).')
+      setErreur('Indique la difficulté de la voie (chiffre + lettre) avant d\'enregistrer.')
       return
     }
     if (!sommetAtteint && !mousqueton) {
-      setErreur('Indique le numéro du dernier mousqueton passé.')
+      setErreur('Indique le numéro du dernier mousqueton passé avant d\'enregistrer.')
       return
     }
     const passage = {
@@ -67,34 +61,45 @@ export default function SuiviCycle({ eleve }) {
       mousqueton: sommetAtteint ? null : Number(mousqueton),
       cordeLovee
     }
+    setEnregistrement(true)
+    // Mise à jour optimiste : le passage apparaît tout de suite dans l'historique,
+    // avant même la confirmation du serveur, pour que l'enregistrement soit visible sans délai.
+    const avant = passages
+    setPassages((liste) => [...liste, passage])
     try {
       const nouvelleListe = await ajouterPassage(eleve, passage)
       setPassages(nouvelleListe)
       setMousqueton('')
       setCordeLovee(false)
+      setConfirmation(`Passage enregistré : voie ${passage.voie} en ${passage.difficulte}.`)
     } catch (e2) {
-      setErreur("Échec de l'enregistrement : " + e2.message)
+      setPassages(avant)
+      setErreur("Échec de l'enregistrement (le passage n'a PAS été sauvegardé) : " + e2.message)
+    } finally {
+      setEnregistrement(false)
     }
   }
 
   async function toggleCordeLovee(p) {
-    const maj = { ...p, cordeLovee: !p.cordeLovee }
+    // Mise à jour optimiste : l'interface réagit tout de suite, la sauvegarde se fait en une seule écriture.
+    setPassages((liste) => liste.map((x) => (x.id === p.id ? { ...x, cordeLovee: !x.cordeLovee } : x)))
     try {
-      await supprimerPassage(eleve, p.id)
-      const nouvelleListe = await ajouterPassage(eleve, maj)
-      setPassages(nouvelleListe)
+      await modifierPassage(eleve, p.id, { cordeLovee: !p.cordeLovee })
     } catch (e) {
       setErreur("Échec de la mise à jour : " + e.message)
+      setPassages((liste) => liste.map((x) => (x.id === p.id ? { ...x, cordeLovee: p.cordeLovee } : x)))
     }
   }
 
   async function supprimer(id) {
     if (!confirm('Supprimer ce passage de ton historique ?')) return
+    const avant = passages
+    setPassages((liste) => liste.filter((p) => p.id !== id))
     try {
-      const nouvelleListe = await supprimerPassage(eleve, id)
-      setPassages(nouvelleListe)
+      await supprimerPassage(eleve, id)
     } catch (e) {
       setErreur('Échec de la suppression : ' + e.message)
+      setPassages(avant)
     }
   }
 
@@ -182,10 +187,15 @@ export default function SuiviCycle({ eleve }) {
           <Package size={14} /> Corde rangée en lovant après ce passage
         </label>
 
-        {erreur && <p className="text-alerte text-sm">{erreur}</p>}
+        {erreur && (
+          <p className="text-sm text-alerte bg-[#fbeeea] rounded-lg px-3 py-2 font-medium">{erreur}</p>
+        )}
+        {confirmation && !erreur && (
+          <p className="text-sm text-roche-700 bg-roche-100 rounded-lg px-3 py-2 font-medium">✓ {confirmation}</p>
+        )}
 
-        <button type="submit" className="flex items-center gap-1.5 bg-roche-800 hover:bg-roche-700 text-white text-sm font-medium px-4 py-2 rounded-xl transition">
-          <Check size={15} /> Enregistrer ce passage
+        <button type="submit" disabled={enregistrement} className="flex items-center gap-1.5 bg-roche-800 hover:bg-roche-700 text-white text-sm font-medium px-4 py-2 rounded-xl transition disabled:opacity-60">
+          <Check size={15} /> {enregistrement ? 'Enregistrement...' : 'Enregistrer ce passage'}
         </button>
       </form>
 

@@ -3,17 +3,33 @@ import { styles } from '../styles.js'
 import Referentiel from './Referentiel.jsx'
 import EvaluationEleve from './EvaluationEleve.jsx'
 import SuiviCycle from './SuiviCycle.jsx'
-import { loadAllEvaluations, cleEvaluation } from '../firebase.js'
+import { loadAllEvaluations, cleEvaluation, loadVoies, voiesParDefaut, loadPassagesEleve } from '../firebase.js'
 
 export default function EspaceEleve({ eleve, videos, onDeconnexion }) {
   const [ongletPrincipal, setOngletPrincipal] = useState('connaissance') // connaissance | suivi
   const [sousOnglet, setSousOnglet] = useState('referentiel') // referentiel | evaluation
   const [evaluationExistante, setEvaluationExistante] = useState(null)
 
+  // Voies et passages du suivi de cycle : chargés une seule fois à la connexion de l'élève,
+  // puis conservés en mémoire pour que changer d'onglet n'entraîne plus de rechargement.
+  const [voies, setVoies] = useState(voiesParDefaut())
+  const [passages, setPassages] = useState([])
+  const [chargementCycle, setChargementCycle] = useState(true)
+  const [erreurCycle, setErreurCycle] = useState('')
+
   useEffect(() => {
     loadAllEvaluations()
       .then((all) => setEvaluationExistante(all[cleEvaluation(eleve)] || null))
       .catch(() => {})
+
+    setChargementCycle(true)
+    Promise.all([loadVoies(), loadPassagesEleve(eleve)])
+      .then(([v, p]) => {
+        setVoies(v)
+        setPassages(p)
+      })
+      .catch((e) => setErreurCycle('Chargement du suivi de cycle impossible : ' + e.message))
+      .finally(() => setChargementCycle(false))
   }, [eleve])
 
   return (
@@ -41,7 +57,16 @@ export default function EspaceEleve({ eleve, videos, onDeconnexion }) {
         </div>
       )}
 
-      {ongletPrincipal === 'suivi' && <SuiviCycle eleve={eleve} />}
+      {ongletPrincipal === 'suivi' && (
+        <SuiviCycle
+          eleve={eleve}
+          voies={voies}
+          passages={passages}
+          setPassages={setPassages}
+          chargement={chargementCycle}
+          erreurInitiale={erreurCycle}
+        />
+      )}
     </div>
   )
 }
