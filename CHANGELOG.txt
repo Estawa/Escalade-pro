@@ -1,0 +1,63 @@
+ESCALADE PRO — JOURNAL DES TRANSFORMATIONS
+By C. Guilhem
+======================================
+
+v2.0.0 — Connexion élève, import de classes et refonte de l'espace enseignant
+--------------------------------------
+- Nouvelle icône de l'application (montagne + mousqueton), déclinée en
+  favicon, icône PWA (192/512) et icône iOS.
+- Connexion élève reprise à l'identique du principe de Course de Durée Pro :
+  l'élève choisit sa classe, trouve son nom dans la liste, puis saisit son
+  code PIN personnel (défini par lui-même lors de sa toute première
+  connexion). Isolation stricte par élève/classe.
+- Import des listes de classe repris à l'identique de Course de Durée Pro
+  (lui-même aligné sur le moteur d'EPS Pro) : import CSV / Excel (.xlsx) /
+  ODS, aperçu brut du fichier, association manuelle des colonnes (Nom,
+  Prénom, Nom+Prénom combiné, Classe, Sexe), gestion de l'encodage et du
+  séparateur, modes "ajouter" et "remplacer" par classe.
+- Espace enseignant protégé par code PIN, réorganisé en deux onglets :
+  "Référentiel" (gestion des vidéos par item, comme avant) et
+  "Élèves & suivi" (classes, import, ajout/modification/suppression
+  d'élève, suppression de classe entière, réinitialisation de PIN,
+  évaluation notée par élève).
+- L'évaluation n'est plus liée à un nom tapé librement : elle est
+  désormais rattachée à l'identité de l'élève connecté (auto-évaluation
+  élève) ou à l'élève sélectionné dans la classe (évaluation notée par le
+  professeur, sur 20). Les deux évaluations sont conservées séparément et
+  affichées dans la fiche de l'élève.
+- "Escalade Pro by C. Guilhem" et le numéro de version affichés en
+  discret à côté du titre sur chaque page (dans l'en-tête).
+- Passage de l'application à la même base technique que les autres
+  applications (React/Vite/Tailwind, PWA installable via vite-plugin-pwa).
+- Ce fichier CHANGELOG.txt est désormais inclus et mis à jour dans chaque
+  zip livré.
+
+v1.0.0 — Première version
+--------------------------------------
+- Création de l'application "Escalade Pro", structurée comme Gym Pro
+  (React/Vite, GitHub, Vercel, Firebase).
+- Référentiel organisé en 5 modules : Sécurité & vérification visuelle,
+  Installation dans le baudrier, Nœuds (nœud de huit, nœud de vache, nœud
+  du pendu, nœud d'arrêt), Assurage à 5 points, Lovage et rangement de
+  la corde.
+- Ajout et gestion de vidéos par item (mode Prof) : une vidéo de
+  démonstration + vidéos d'apprentissage par phases, modifiables à tout
+  moment, sauvegardées sur Firebase (Firestore).
+- Évaluation :
+  - Mode Élève : auto-évaluation par case à cocher, compétence par
+    compétence, avec décompte des compétences maîtrisées.
+  - Mode Prof : évaluation à 3 niveaux par item (Non acquis / En cours /
+    Acquis), calcul automatique d'une note globale sur 20.
+  - Les évaluations sont enregistrées sur Firebase avec le nom de l'élève.
+- Mode Élève / Mode Prof (bascule simple, sans code d'accès pour l'instant).
+- Version affichée en discret à côté du titre, avec la mention "By C. Guilhem".
+- Bandeau d'avertissement rappelant que le contenu pédagogique de base est
+  à vérifier et compléter avant utilisation avec les élèves.
+
+À prévoir pour les prochaines versions
+--------------------------------------
+- Compléter/vérifier le contenu du "nœud du pendu".
+- Fiche de notes par classe exportable vers EPS Pro.
+- Import de classe directement depuis EPS Pro (comme pour Course de
+  Durée Pro), en plus du fichier CSV/ODS/Excel.
+- Ajout éventuel d'autres modules (rappel, techniques de progression...).
