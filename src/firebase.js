@@ -3,7 +3,8 @@ import { getFirestore, doc, setDoc, collection, getDocs } from "firebase/firesto
 
 // ⚠️ À COMPLÉTER : remplace ces valeurs par celles de ton projet Firebase
 // (Console Firebase > Paramètres du projet > Vos applications > Config SDK)
-// Tu peux réutiliser le même projet Firebase que Gym Pro, ou en créer un dédié.
+// Tu peux réutiliser le même projet Firebase que Gym Pro / la version précédente
+// d'Escalade Pro, ou en créer un dédié.
 const firebaseConfig = {
   apiKey: "VOTRE_API_KEY",
   authDomain: "VOTRE_PROJET.firebaseapp.com",
@@ -30,6 +31,18 @@ export async function saveVideoForItem(key, data) {
   await setDoc(doc(db, VIDEOS_COLLECTION, key), data);
 }
 
-export async function saveEvaluation(id, data) {
-  await setDoc(doc(db, EVALS_COLLECTION, id), data);
+// Clé stable par élève identifié (indépendante d'un renommage de classe/élève après coup).
+export function cleEvaluation(eleve) {
+  return eleve.id ? eleve.id : `${eleve.nom}__${eleve.prenom}__${eleve.classe}`.toLowerCase();
+}
+
+export async function saveEvaluation(eleve, data) {
+  await setDoc(doc(db, EVALS_COLLECTION, cleEvaluation(eleve)), { eleve, ...data }, { merge: true });
+}
+
+export async function loadAllEvaluations() {
+  const snap = await getDocs(collection(db, EVALS_COLLECTION));
+  const result = {};
+  snap.forEach((d) => (result[d.id] = d.data()));
+  return result;
 }
