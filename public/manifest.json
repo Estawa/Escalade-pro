@@ -1,1 +1,10 @@
-
+{
+  "name": "Escalade Pro",
+  "short_name": "Escalade Pro",
+  "description": "Sécurité, nœuds et assurage - By C. Guilhem",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#F5F3EE",
+  "theme_color": "#1F2A24",
+  "icons": []
+}
