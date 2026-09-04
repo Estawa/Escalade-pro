@@ -19,8 +19,8 @@ Le référentiel (vidéos) et les évaluations restent sur Firebase ; les classe
 élèves et codes PIN sont stockés localement sur l'appareil (comme dans Course de
 Durée Pro).
 
-Code d'accès enseignant par défaut : **4242** (modifiable dans `src/utils/storage.js`,
-constante `PIN_ENSEIGNANT`).
+Code d'accès enseignant par défaut : **4242**. Modifiable directement depuis
+l'application (bouton "Modifier le code d'accès" en haut de l'espace enseignant).
 
 ⚠️ Le contenu pédagogique (`src/data.js`) est une base à vérifier et compléter avant
 utilisation avec les élèves, notamment le nœud du pendu.
@@ -37,6 +37,19 @@ Depuis l'espace enseignant (onglet "Élèves & suivi" → "Importer des élèves
 formats CSV, Excel (.xlsx) et ODS acceptés, y compris les exports Pronote. Un
 aperçu brut du fichier permet d'associer manuellement les colonnes (Nom, Prénom,
 Nom+Prénom combiné, Classe, Sexe) avant validation.
+
+## Suivi de Cycle (17 voies)
+
+Côté élève, l'onglet "Suivi de Cycle" permet d'enregistrer chaque passage sur
+les 17 voies du mur (voie, rôle grimpeur/assureur, mode Moulinette/Moulitête/
+Tête, difficulté, nombre de couleurs, hauteur atteinte, corde lovée).
+
+Côté enseignant, l'onglet "Voies" permet de configurer, pour chacune des 17
+voies, la difficulté correspondant à 1, 2 ou 3 couleurs de prise (sert de
+suggestion pré-remplie côté élève). Dans "Élèves & suivi", le panneau
+"Suivi de cycle" de chaque élève affiche le bilan de ses passages et permet
+de saisir l'épreuve finale (passage Grimpeur et passage Assureur) ainsi
+qu'une note de suivi de cycle sur 20.
 
 ## Build de production
 

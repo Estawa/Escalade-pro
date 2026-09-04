@@ -2,6 +2,45 @@ ESCALADE PRO — JOURNAL DES TRANSFORMATIONS
 By C. Guilhem
 ======================================
 
+v3.0.0 — Suivi de cycle sur les 17 voies et code enseignant modifiable
+--------------------------------------
+- Espace enseignant : nouvelle fonction "Modifier le code d'accès" (code
+  actuel + nouveau code + confirmation), remplace le code fixe 4242 codé
+  en dur. Le code par défaut reste 4242 tant qu'il n'a pas été changé.
+- Espace élève réorganisé en deux onglets principaux :
+  - "Connaissance" : reprend tout ce qui existait avant (sous-onglets
+    Référentiel et Ma auto-évaluation), inchangé.
+  - "Suivi de Cycle" : nouvelle application de suivi des passages sur
+    les 17 voies du mur.
+- Pour chaque passage, l'élève renseigne : la voie (1 à 17), son rôle
+  (Grimpeur ou Assureur), le mode (Moulinette, Moulitête ou Tête), le
+  nombre de couleurs de prise utilisées (1, 2 ou 3), la difficulté de la
+  voie (chiffre 3 à 7 + lettre a/b/c + "+" optionnel, ex. "5a+"), la
+  hauteur atteinte (sommet/chaîne haute, ou numéro du dernier mousqueton
+  passé si non atteint), et peut valider que la corde a été rangée en
+  lovant. Chaque passage est enregistré et daté ; l'élève retrouve tout
+  son historique de cycle pour se souvenir de ses réussites et varier
+  ses voies.
+- Nouvel onglet enseignant "Voies" : configuration des 17 voies du mur,
+  avec la difficulté correspondant à 1, 2 ou 3 couleurs de prise pour
+  chacune. Cette configuration sert à pré-remplir (en suggestion,
+  modifiable) la difficulté saisie par l'élève selon la voie et le
+  nombre de couleurs choisies.
+- Dans l'onglet "Élèves & suivi", chaque élève dispose maintenant de
+  deux panneaux séparés : "Évaluer (référentiel)" (comme avant) et
+  "Suivi de cycle" (nouveau), avec :
+  - un bilan des passages enregistrés (nombre de passages, réussites au
+    sommet, voies différentes, répartition grimpeur/assureur, meilleure
+    réussite),
+  - la saisie de l'épreuve finale de cycle : passage Grimpeur (voie,
+    difficulté, réussite) et passage Assureur (voie assurée, qualité
+    d'assurage), chacun noté séparément,
+  - une note de suivi de cycle sur 20, saisie librement par l'enseignant
+    à partir de l'ensemble de ces informations.
+- La fiche de chaque élève dans "Élèves & suivi" affiche désormais aussi
+  le nombre de passages enregistrés et, si elle existe, la note de
+  suivi de cycle.
+
 v2.0.0 — Connexion élève, import de classes et refonte de l'espace enseignant
 --------------------------------------
 - Nouvelle icône de l'application (montagne + mousqueton), déclinée en
