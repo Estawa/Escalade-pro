@@ -1,8 +1,11 @@
 const KEYS = {
   ELEVE_ACTIF_ID: 'esc_eleve_actif_id',
   ROSTER: 'esc_roster_v1',
-  PIN_OK: 'esc_pin_ok'
+  PIN_OK: 'esc_pin_ok',
+  PIN_ENSEIGNANT: 'esc_pin_enseignant'
 }
+
+const PIN_ENSEIGNANT_DEFAUT = '4242'
 
 function read(key, fallback) {
   try {
@@ -161,7 +164,12 @@ export const storage = {
   },
 
   getPinOk: () => read(KEYS.PIN_OK, false),
-  setPinOk: (val) => write(KEYS.PIN_OK, val)
+  setPinOk: (val) => write(KEYS.PIN_OK, val),
+
+  // --- Code d'accès enseignant (modifiable, sinon valeur par défaut) ---
+  getPinEnseignant: () => read(KEYS.PIN_ENSEIGNANT, PIN_ENSEIGNANT_DEFAUT),
+  setPinEnseignant: (pin) => write(KEYS.PIN_ENSEIGNANT, pin)
 }
 
-export const PIN_ENSEIGNANT = '4242'
+// Conservé pour compatibilité : valeur par défaut avant toute modification par l'enseignant.
+export const PIN_ENSEIGNANT = PIN_ENSEIGNANT_DEFAUT
