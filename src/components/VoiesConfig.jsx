@@ -4,6 +4,8 @@ import DifficulteSelect from './DifficulteSelect.jsx'
 import { formatDifficulte, parseDifficulte } from '../utils/difficulte.js'
 import { loadVoies, saveVoies, voiesParDefaut } from '../firebase.js'
 
+const SOUS_COLONNES = [3, 2, 1] // ordre d'affichage : 3 couleurs, puis 2, puis 1
+
 export default function VoiesConfig() {
   const [voies, setVoies] = useState(voiesParDefaut())
   const [chargement, setChargement] = useState(true)
@@ -16,13 +18,12 @@ export default function VoiesConfig() {
       .finally(() => setChargement(false))
   }, [])
 
-  function setDifficulteCouleur(numero, nbCouleurs, patch) {
+  function setCouleur(numero, nbCouleurs, patch) {
     setVoies((liste) =>
       liste.map((v) => {
         if (v.numero !== numero) return v
-        const courante = parseDifficulte(v.couleurs[nbCouleurs])
-        const nouvelle = { ...courante, ...patch }
-        return { ...v, couleurs: { ...v.couleurs, [nbCouleurs]: formatDifficulte(nouvelle) } }
+        const courante = v.couleurs[nbCouleurs] || { nom: '', difficulte: '' }
+        return { ...v, couleurs: { ...v.couleurs, [nbCouleurs]: { ...courante, ...patch } } }
       })
     )
   }
@@ -41,34 +42,45 @@ export default function VoiesConfig() {
   return (
     <div>
       <p className="text-sm text-roche-600 mb-4">
-        Pour chaque voie du mur (1 à 17), indique la difficulté correspondant à 1, 2 ou 3 couleurs de prise
-        utilisées. Laisse vide si une combinaison n'existe pas sur cette voie. Cette configuration sert à
-        pré-remplir la difficulté saisie par les élèves dans leur suivi de cycle.
+        Pour chaque voie du mur (1 à 17), indique le nom de la couleur de prise et la difficulté correspondante
+        pour 3, 2 puis 1 couleur(s) utilisée(s). Laisse vide si une combinaison n'existe pas sur cette voie.
+        Cette configuration sert d'en-tête au tableau de suivi de cycle et pré-remplit la difficulté saisie par
+        les élèves.
       </p>
       <div className="overflow-x-auto">
         <table className="text-sm w-full border-collapse">
           <thead>
             <tr>
               <th className="text-left px-2 py-1.5 text-roche-500 text-xs uppercase">Voie</th>
-              <th className="text-left px-2 py-1.5 text-roche-500 text-xs uppercase">1 couleur</th>
-              <th className="text-left px-2 py-1.5 text-roche-500 text-xs uppercase">2 couleurs</th>
-              <th className="text-left px-2 py-1.5 text-roche-500 text-xs uppercase">3 couleurs</th>
+              {SOUS_COLONNES.map((n) => (
+                <th key={n} className="text-left px-2 py-1.5 text-roche-500 text-xs uppercase">{n} couleur{n > 1 ? 's' : ''}</th>
+              ))}
             </tr>
           </thead>
           <tbody>
             {voies.map((v) => (
               <tr key={v.numero} className="border-t border-roche-100">
                 <td className="px-2 py-2 font-medium text-roche-900">Voie {v.numero}</td>
-                {[1, 2, 3].map((n) => {
-                  const d = parseDifficulte(v.couleurs[n])
+                {SOUS_COLONNES.map((n) => {
+                  const c = v.couleurs[n] || { nom: '', difficulte: '' }
+                  const d = parseDifficulte(c.difficulte)
                   return (
                     <td key={n} className="px-2 py-2">
-                      <DifficulteSelect
-                        chiffre={d.chiffre}
-                        lettre={d.lettre}
-                        plus={d.plus}
-                        onChange={(patch) => setDifficulteCouleur(v.numero, n, patch)}
-                      />
+                      <div className="space-y-1.5">
+                        <input
+                          type="text"
+                          value={c.nom}
+                          onChange={(e) => setCouleur(v.numero, n, { nom: e.target.value })}
+                          placeholder="Couleur (ex. Rouge)"
+                          className="w-full rounded-lg border border-roche-200 px-2 py-1.5 text-sm bg-white"
+                        />
+                        <DifficulteSelect
+                          chiffre={d.chiffre}
+                          lettre={d.lettre}
+                          plus={d.plus}
+                          onChange={(patch) => setCouleur(v.numero, n, { difficulte: formatDifficulte({ ...d, ...patch }) })}
+                        />
+                      </div>
                     </td>
                   )
                 })}

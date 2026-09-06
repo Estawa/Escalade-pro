@@ -1,8 +1,11 @@
 import { useMemo, useState, useEffect } from 'react'
 import { Check, Trash2, Package } from 'lucide-react'
 import DifficulteSelect from './DifficulteSelect.jsx'
+import GrilleSuiviVoies from './GrilleSuiviVoies.jsx'
+import DetailCellule from './DetailCellule.jsx'
 import { formatDifficulte, parseDifficulte } from '../utils/difficulte.js'
 import { ajouterPassage, supprimerPassage, modifierPassage } from '../firebase.js'
+import { storage } from '../utils/storage.js'
 
 const MODES = ['Moulinette', 'Moulitête', 'Tête']
 const ROLES = ['Grimpeur', 'Assureur']
@@ -14,6 +17,7 @@ function idPassage() {
 export default function SuiviCycle({ eleve, voies, passages, setPassages, chargement, erreurInitiale }) {
   const [erreur, setErreur] = useState('')
   const [confirmation, setConfirmation] = useState('')
+  const [detail, setDetail] = useState(null)
 
   useEffect(() => {
     if (erreurInitiale) setErreur(erreurInitiale)
@@ -27,10 +31,22 @@ export default function SuiviCycle({ eleve, voies, passages, setPassages, charge
   const [sommetAtteint, setSommetAtteint] = useState(true)
   const [mousqueton, setMousqueton] = useState('')
   const [cordeLovee, setCordeLovee] = useState(false)
+  const [partenaireId, setPartenaireId] = useState('')
   const [enregistrement, setEnregistrement] = useState(false)
 
+  // Camarades de la même classe, pour désigner qui a été assuré (rôle Assureur uniquement).
+  // Le roster élèves est en localStorage sur cet appareil, accessible directement.
+  const camarades = useMemo(() => {
+    try {
+      return storage.getElevesClasse(eleve.classe).filter((e) => e.id !== eleve.id)
+    } catch {
+      return []
+    }
+  }, [eleve])
+
   const voieActive = useMemo(() => voies.find((v) => v.numero === Number(numeroVoie)), [voies, numeroVoie])
-  const suggestion = voieActive ? voieActive.couleurs[nbCouleurs] : ''
+  const couleurActive = voieActive ? voieActive.couleurs[nbCouleurs] : null
+  const suggestion = couleurActive ? couleurActive.difficulte : ''
 
   function appliquerSuggestion() {
     if (suggestion) setDifficulte(parseDifficulte(suggestion))
@@ -49,6 +65,11 @@ export default function SuiviCycle({ eleve, voies, passages, setPassages, charge
       setErreur('Indique le numéro du dernier mousqueton passé avant d\'enregistrer.')
       return
     }
+    if (role === 'Assureur' && !partenaireId) {
+      setErreur('Indique le camarade que tu as assuré avant d\'enregistrer.')
+      return
+    }
+    const camaradeChoisi = camarades.find((c) => c.id === partenaireId)
     const passage = {
       id: idPassage(),
       date: Date.now(),
@@ -59,7 +80,9 @@ export default function SuiviCycle({ eleve, voies, passages, setPassages, charge
       difficulte: diffStr,
       sommetAtteint,
       mousqueton: sommetAtteint ? null : Number(mousqueton),
-      cordeLovee
+      cordeLovee,
+      partenaireId: role === 'Assureur' ? partenaireId : null,
+      partenaireNom: role === 'Assureur' && camaradeChoisi ? `${camaradeChoisi.prenom} ${camaradeChoisi.nom}` : null
     }
     setEnregistrement(true)
     // Mise à jour optimiste : le passage apparaît tout de suite dans l'historique,
@@ -71,6 +94,7 @@ export default function SuiviCycle({ eleve, voies, passages, setPassages, charge
       setPassages(nouvelleListe)
       setMousqueton('')
       setCordeLovee(false)
+      setPartenaireId('')
       setConfirmation(`Passage enregistré : voie ${passage.voie} en ${passage.difficulte}.`)
     } catch (e2) {
       setPassages(avant)
@@ -95,6 +119,7 @@ export default function SuiviCycle({ eleve, voies, passages, setPassages, charge
     if (!confirm('Supprimer ce passage de ton historique ?')) return
     const avant = passages
     setPassages((liste) => liste.filter((p) => p.id !== id))
+    setDetail((d) => (d ? { ...d, passages: d.passages.filter((p) => p.id !== id) } : d))
     try {
       await supprimerPassage(eleve, id)
     } catch (e) {
@@ -105,10 +130,34 @@ export default function SuiviCycle({ eleve, voies, passages, setPassages, charge
 
   const passagesTries = [...passages].sort((a, b) => b.date - a.date)
 
+  const ligneTableau = useMemo(
+    () => [{ key: eleve.id || 'moi', titre: `${eleve.prenom} ${eleve.nom}`, passages }],
+    [eleve, passages]
+  )
+
+  function ouvrirDetailCellule(ligne, numeroVoie2, nbCouleurs2, passagesCellule) {
+    const v = voies.find((x) => x.numero === numeroVoie2)
+    const c = v?.couleurs?.[nbCouleurs2]
+    setDetail({
+      titre: `Voie ${numeroVoie2} — ${nbCouleurs2} couleur${nbCouleurs2 > 1 ? 's' : ''}`,
+      sousTitre: c?.nom ? `${c.nom}${c.difficulte ? ' · ' + c.difficulte : ''}` : c?.difficulte || '',
+      passages: passagesCellule
+    })
+  }
+
   if (chargement) return <p className="text-sm text-roche-500 px-1">Chargement du suivi de cycle...</p>
 
   return (
     <div>
+      <p className="text-xs font-semibold text-roche-700 uppercase tracking-wide mb-2">Mon tableau de suivi de cycle</p>
+      <p className="text-xs text-roche-500 mb-2">
+        En début de séance, retrouve ici où tu en es : tes réussites, tes échecs et ce qu'il te reste à progresser.
+        Clique sur une case pour voir le détail.
+      </p>
+      <div className="mb-6">
+        <GrilleSuiviVoies voies={voies} lignes={ligneTableau} onCellClick={ouvrirDetailCellule} />
+      </div>
+
       <form onSubmit={enregistrerPassage} className="bg-roche-50 rounded-xl p-4 mb-6 space-y-3">
         <p className="text-xs font-semibold text-roche-700 uppercase tracking-wide">Nouveau passage</p>
 
@@ -136,19 +185,31 @@ export default function SuiviCycle({ eleve, voies, passages, setPassages, charge
           <div>
             <label className="block text-xs text-roche-600 mb-1">Couleurs de prise utilisées</label>
             <select value={nbCouleurs} onChange={(e) => setNbCouleurs(e.target.value)} className="w-full rounded-lg border border-roche-200 px-2.5 py-2 text-sm bg-white">
-              <option value={1}>1 couleur</option>
-              <option value={2}>2 couleurs</option>
               <option value={3}>3 couleurs</option>
+              <option value={2}>2 couleurs</option>
+              <option value={1}>1 couleur</option>
             </select>
           </div>
         </div>
+
+        {role === 'Assureur' && (
+          <div>
+            <label className="block text-xs text-roche-600 mb-1">Camarade assuré</label>
+            <select value={partenaireId} onChange={(e) => setPartenaireId(e.target.value)} className="w-full rounded-lg border border-roche-200 px-2.5 py-2 text-sm bg-white">
+              <option value="">— Choisir —</option>
+              {camarades.map((c) => (
+                <option key={c.id} value={c.id}>{c.prenom} {c.nom}</option>
+              ))}
+            </select>
+          </div>
+        )}
 
         <div>
           <label className="block text-xs text-roche-600 mb-1">
             Difficulté
             {suggestion && (
               <button type="button" onClick={appliquerSuggestion} className="ml-2 text-roche-700 underline">
-                (suggestion pour cette voie : {suggestion})
+                (suggestion pour cette voie{couleurActive?.nom ? ` · ${couleurActive.nom}` : ''} : {suggestion})
               </button>
             )}
           </label>
@@ -199,7 +260,7 @@ export default function SuiviCycle({ eleve, voies, passages, setPassages, charge
         </button>
       </form>
 
-      <p className="text-xs font-semibold text-roche-700 uppercase tracking-wide mb-2">Mon historique de cycle</p>
+      <p className="text-xs font-semibold text-roche-700 uppercase tracking-wide mb-2">Mon historique détaillé</p>
       {passagesTries.length === 0 && <p className="text-sm text-roche-500">Aucun passage enregistré pour l'instant.</p>}
       <div className="space-y-2">
         {passagesTries.map((p) => (
@@ -207,6 +268,7 @@ export default function SuiviCycle({ eleve, voies, passages, setPassages, charge
             <div className="flex items-center justify-between">
               <p className="text-sm font-medium text-roche-900">
                 Voie {p.voie} · {p.difficulte} · {p.role} · {p.mode}
+                {p.role === 'Assureur' && p.partenaireNom ? ` (${p.partenaireNom})` : ''}
               </p>
               <button onClick={() => supprimer(p.id)} className="p-1 rounded-full hover:bg-[#fbeeea] text-alerte">
                 <Trash2 size={14} />
@@ -223,6 +285,8 @@ export default function SuiviCycle({ eleve, voies, passages, setPassages, charge
           </div>
         ))}
       </div>
+
+      <DetailCellule detail={detail} onFermer={() => setDetail(null)} onSupprimer={(p) => supprimer(p.id)} />
     </div>
   )
 }

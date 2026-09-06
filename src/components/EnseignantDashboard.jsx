@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import {
   Upload, ChevronDown, ChevronUp, KeyRound, UserX, Pencil, UserPlus,
-  FolderPlus, FolderX, Check, X, ClipboardList, Mountain
+  FolderPlus, FolderX, Check, X, ClipboardList, Mountain, Table, List, Eye
 } from 'lucide-react'
 import Referentiel from './Referentiel.jsx'
 import ImportEleves from './ImportEleves.jsx'
@@ -9,32 +9,43 @@ import EvaluationProf from './EvaluationProf.jsx'
 import SuiviEleveProf from './SuiviEleveProf.jsx'
 import VoiesConfig from './VoiesConfig.jsx'
 import ChangerPin from './ChangerPin.jsx'
+import GrilleSuiviVoies from './GrilleSuiviVoies.jsx'
+import DetailCellule from './DetailCellule.jsx'
+import TableauPerformanceProf from './TableauPerformanceProf.jsx'
 import { storage } from '../utils/storage.js'
-import { loadAllEvaluations, cleEvaluation, loadAllPassages } from '../firebase.js'
+import { loadAllEvaluations, cleEvaluation, loadAllPassages, loadAllObservations, loadVoies, voiesParDefaut, supprimerPassage } from '../firebase.js'
 
 export default function EnseignantDashboard({ videos, onSaveVideo, onRemovePhase }) {
   const [onglet, setOnglet] = useState('referentiel') // referentiel | voies | suivi
   const [importOuvert, setImportOuvert] = useState(false)
   const [rosterVersion, setRosterVersion] = useState(0)
   const [classeSelectionnee, setClasseSelectionnee] = useState(null)
+  const [vueSuivi, setVueSuivi] = useState('liste') // liste | tableau
   const [eleveOuvert, setEleveOuvert] = useState(null)
   const [eleveEnEdition, setEleveEnEdition] = useState(null)
   const [editNom, setEditNom] = useState('')
   const [editPrenom, setEditPrenom] = useState('')
   const [editSexe, setEditSexe] = useState('')
+  const [editEquipe, setEditEquipe] = useState('')
   const [ajoutEleveOuvert, setAjoutEleveOuvert] = useState(false)
   const [nouvelEleveNom, setNouvelEleveNom] = useState('')
   const [nouvelElevePrenom, setNouvelElevePrenom] = useState('')
   const [nouvelEleveSexe, setNouvelEleveSexe] = useState('')
+  const [nouvelEleveEquipe, setNouvelEleveEquipe] = useState('')
   const [nouvelleClasseOuverte, setNouvelleClasseOuverte] = useState(false)
   const [nouvelleClasseNom, setNouvelleClasseNom] = useState('')
   const [evaluations, setEvaluations] = useState({})
   const [passagesParEleve, setPassagesParEleve] = useState({})
+  const [observationsParEleve, setObservationsParEleve] = useState({})
+  const [voies, setVoies] = useState(voiesParDefaut())
   const [panneauOuvertPour, setPanneauOuvertPour] = useState(null) // { id: eleveId, type: 'eval' | 'cycle' }
+  const [detailCellule, setDetailCellule] = useState(null)
 
   useEffect(() => {
     loadAllEvaluations().then(setEvaluations).catch(() => {})
     loadAllPassages().then(setPassagesParEleve).catch(() => {})
+    loadAllObservations().then(setObservationsParEleve).catch(() => {})
+    loadVoies().then(setVoies).catch(() => {})
   }, [])
 
   const classes = useMemo(() => storage.getClasses(), [rosterVersion])
@@ -45,6 +56,53 @@ export default function EnseignantDashboard({ videos, onSaveVideo, onRemovePhase
     // eslint-disable-next-line react-hooks/exhaustive-deps
     return storage.getElevesClasse(classeActive)
   }, [classeActive, rosterVersion])
+
+  // Lignes du tableau récapitulatif de suivi de cycle pour la classe active,
+  // regroupées visuellement par équipe (binôme/trinôme) dans GrilleSuiviVoies.
+  const lignesTableauClasse = useMemo(
+    () =>
+      elevesDeLaClasse.map((eleve) => {
+        const eleveComplet = { id: eleve.id, nom: eleve.nom, prenom: eleve.prenom, classe: classeActive }
+        return {
+          key: eleve.id,
+          titre: `${eleve.prenom} ${eleve.nom}`,
+          equipe: eleve.equipe || '',
+          eleveComplet,
+          passages: passagesParEleve[cleEvaluation(eleveComplet)] || []
+        }
+      }),
+    [elevesDeLaClasse, classeActive, passagesParEleve]
+  )
+
+  function ouvrirDetailCelluleClasse(ligne, numeroVoie, nbCouleurs, passagesCellule) {
+    const v = voies.find((x) => x.numero === numeroVoie)
+    const c = v?.couleurs?.[nbCouleurs]
+    setDetailCellule({
+      titre: `${ligne.titre} — Voie ${numeroVoie}`,
+      sousTitre: [
+        `${nbCouleurs} couleur${nbCouleurs > 1 ? 's' : ''}`,
+        c?.nom,
+        c?.difficulte
+      ].filter(Boolean).join(' · '),
+      eleveComplet: ligne.eleveComplet,
+      passages: passagesCellule
+    })
+  }
+
+  async function supprimerPassageDepuisDetail(passage) {
+    if (!detailCellule?.eleveComplet) return
+    const { eleveComplet } = detailCellule
+    const cle = cleEvaluation(eleveComplet)
+    const avant = passagesParEleve[cle] || []
+    const apres = avant.filter((p) => p.id !== passage.id)
+    setPassagesParEleve((m) => ({ ...m, [cle]: apres }))
+    setDetailCellule((d) => (d ? { ...d, passages: d.passages.filter((p) => p.id !== passage.id) } : d))
+    try {
+      await supprimerPassage(eleveComplet, passage.id)
+    } catch (e) {
+      setPassagesParEleve((m) => ({ ...m, [cle]: avant }))
+    }
+  }
 
   function supprimerEleve(eleveId) {
     if (!eleveId || classeActive === null) return
@@ -73,11 +131,12 @@ export default function EnseignantDashboard({ videos, onSaveVideo, onRemovePhase
     setEditNom(eleve.nom)
     setEditPrenom(eleve.prenom)
     setEditSexe(eleve.sexe || '')
+    setEditEquipe(eleve.equipe || '')
   }
 
   function enregistrerEdition(eleveId) {
     if (!editNom.trim() || !editPrenom.trim() || classeActive === null) return
-    storage.modifierEleve(classeActive, eleveId, { nom: editNom, prenom: editPrenom, sexe: editSexe })
+    storage.modifierEleve(classeActive, eleveId, { nom: editNom, prenom: editPrenom, sexe: editSexe, equipe: editEquipe })
     setEleveEnEdition(null)
     setRosterVersion((v) => v + 1)
   }
@@ -85,10 +144,11 @@ export default function EnseignantDashboard({ videos, onSaveVideo, onRemovePhase
   function ajouterEleve(e) {
     e.preventDefault()
     if (!nouvelEleveNom.trim() || !nouvelElevePrenom.trim() || classeActive === null) return
-    storage.ajouterEleveManuel(classeActive, nouvelEleveNom, nouvelElevePrenom, nouvelEleveSexe || null)
+    storage.ajouterEleveManuel(classeActive, nouvelEleveNom, nouvelElevePrenom, nouvelEleveSexe || null, nouvelEleveEquipe || null)
     setNouvelEleveNom('')
     setNouvelElevePrenom('')
     setNouvelEleveSexe('')
+    setNouvelEleveEquipe('')
     setAjoutEleveOuvert(false)
     setRosterVersion((v) => v + 1)
   }
@@ -188,183 +248,252 @@ export default function EnseignantDashboard({ videos, onSaveVideo, onRemovePhase
                 ))}
               </div>
 
-              <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
                 <p className="text-xs text-roche-500">{elevesDeLaClasse.length} élève{elevesDeLaClasse.length > 1 ? 's' : ''}</p>
-                <button
-                  onClick={() => setAjoutEleveOuvert((v) => !v)}
-                  className="flex items-center gap-1.5 text-xs font-medium text-roche-700 hover:text-roche-900"
-                >
-                  <UserPlus size={14} /> Ajouter un élève
-                </button>
+                <div className="flex items-center gap-3 flex-wrap">
+                  <div className="flex gap-1 bg-roche-50 rounded-full p-1">
+                    <button
+                      onClick={() => setVueSuivi('liste')}
+                      className={`flex items-center gap-1 text-[11px] font-medium px-2.5 py-1 rounded-full transition ${vueSuivi === 'liste' ? 'bg-roche-800 text-white' : 'text-roche-600'}`}
+                    >
+                      <List size={12} /> Liste
+                    </button>
+                    <button
+                      onClick={() => setVueSuivi('tableau')}
+                      className={`flex items-center gap-1 text-[11px] font-medium px-2.5 py-1 rounded-full transition ${vueSuivi === 'tableau' ? 'bg-roche-800 text-white' : 'text-roche-600'}`}
+                    >
+                      <Table size={12} /> Tableau de suivi
+                    </button>
+                    <button
+                      onClick={() => setVueSuivi('performance')}
+                      className={`flex items-center gap-1 text-[11px] font-medium px-2.5 py-1 rounded-full transition ${vueSuivi === 'performance' ? 'bg-roche-800 text-white' : 'text-roche-600'}`}
+                    >
+                      <Eye size={12} /> Performance (observée)
+                    </button>
+                  </div>
+                  {vueSuivi === 'liste' && (
+                    <button
+                      onClick={() => setAjoutEleveOuvert((v) => !v)}
+                      className="flex items-center gap-1.5 text-xs font-medium text-roche-700 hover:text-roche-900"
+                    >
+                      <UserPlus size={14} /> Ajouter un élève
+                    </button>
+                  )}
+                </div>
               </div>
 
-              {ajoutEleveOuvert && (
-                <form onSubmit={ajouterEleve} className="flex flex-col sm:flex-row gap-2 mb-4 bg-roche-50 rounded-xl p-3">
-                  <input
-                    value={nouvelElevePrenom}
-                    onChange={(e) => setNouvelElevePrenom(e.target.value)}
-                    placeholder="Prénom"
-                    autoFocus
-                    className="flex-1 rounded-xl border border-roche-200 px-3.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-roche-500"
+              {vueSuivi === 'tableau' && (
+                <div>
+                  <p className="text-xs text-roche-500 mb-2">
+                    Vue d'ensemble de la classe, groupée par équipe (binôme/trinôme). Déclaratif : ce que chaque élève
+                    a lui-même enregistré. Clique sur une case pour voir le détail des passages. Renseigne l'équipe de
+                    chaque élève depuis la vue "Liste" (bouton "Modifier").
+                  </p>
+                  <GrilleSuiviVoies
+                    voies={voies}
+                    lignes={lignesTableauClasse}
+                    onCellClick={ouvrirDetailCelluleClasse}
+                    grouperParEquipe
                   />
-                  <input
-                    value={nouvelEleveNom}
-                    onChange={(e) => setNouvelEleveNom(e.target.value)}
-                    placeholder="Nom"
-                    className="flex-1 rounded-xl border border-roche-200 px-3.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-roche-500"
-                  />
-                  <select
-                    value={nouvelEleveSexe}
-                    onChange={(e) => setNouvelEleveSexe(e.target.value)}
-                    className="rounded-xl border border-roche-200 px-2.5 py-2 text-sm bg-white"
-                  >
-                    <option value="">Sexe</option>
-                    <option value="F">F</option>
-                    <option value="M">M</option>
-                  </select>
-                  <button type="submit" className="bg-roche-800 hover:bg-roche-700 text-white text-sm font-medium px-3.5 py-2 rounded-xl transition">
-                    Ajouter
-                  </button>
-                </form>
+                </div>
               )}
 
-              {elevesDeLaClasse.length === 0 && <p className="text-sm text-roche-500">Aucun élève dans cette classe.</p>}
+              {vueSuivi === 'performance' && (
+                <TableauPerformanceProf
+                  elevesDeLaClasse={elevesDeLaClasse}
+                  classeActive={classeActive}
+                  voies={voies}
+                  observationsParEleve={observationsParEleve}
+                  setObservationsParEleve={setObservationsParEleve}
+                />
+              )}
 
-              <div className="space-y-2">
-                {elevesDeLaClasse.map((eleve) => {
-                  const eleveComplet = { id: eleve.id, nom: eleve.nom, prenom: eleve.prenom, classe: classeActive }
-                  const evalExistante = evaluations[cleEvaluation(eleveComplet)]
-                  const ouvert = eleveOuvert === eleve.id
-                  return (
-                    <div key={eleve.id} className="bg-roche-50 rounded-xl overflow-hidden">
-                      <button
-                        onClick={() => {
-                          setEleveOuvert(ouvert ? null : eleve.id)
-                          setPanneauOuvertPour(null)
-                        }}
-                        className="w-full flex items-center justify-between px-4 py-3"
+              {vueSuivi === 'liste' && (
+                <>
+                  {ajoutEleveOuvert && (
+                    <form onSubmit={ajouterEleve} className="flex flex-col sm:flex-row gap-2 mb-4 bg-roche-50 rounded-xl p-3">
+                      <input
+                        value={nouvelElevePrenom}
+                        onChange={(e) => setNouvelElevePrenom(e.target.value)}
+                        placeholder="Prénom"
+                        autoFocus
+                        className="flex-1 rounded-xl border border-roche-200 px-3.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-roche-500"
+                      />
+                      <input
+                        value={nouvelEleveNom}
+                        onChange={(e) => setNouvelEleveNom(e.target.value)}
+                        placeholder="Nom"
+                        className="flex-1 rounded-xl border border-roche-200 px-3.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-roche-500"
+                      />
+                      <select
+                        value={nouvelEleveSexe}
+                        onChange={(e) => setNouvelEleveSexe(e.target.value)}
+                        className="rounded-xl border border-roche-200 px-2.5 py-2 text-sm bg-white"
                       >
-                        <div className="text-left">
-                          <p className="text-sm font-medium text-roche-900">
-                            {eleve.prenom} {eleve.nom}
-                            {eleve.sexe && <span className="text-roche-400 font-normal"> ({eleve.sexe})</span>}
-                          </p>
-                          <p className="text-xs text-roche-500">
-                            {evalExistante?.scoreEleve !== undefined && `Auto-éval ${evalExistante.scoreEleve}%`}
-                            {evalExistante?.scoreEleve !== undefined && evalExistante?.scoreProf !== undefined && ' · '}
-                            {evalExistante?.scoreProf !== undefined && `Note prof ${evalExistante.scoreProf}/20`}
-                            {evalExistante?.noteCycle != null && ` · Cycle ${evalExistante.noteCycle}/20`}
-                            {evalExistante?.scoreEleve === undefined && evalExistante?.scoreProf === undefined && evalExistante?.noteCycle == null && 'Pas encore évalué'}
-                            {' · '}{(passagesParEleve[cleEvaluation(eleveComplet)] || []).length} passage{(passagesParEleve[cleEvaluation(eleveComplet)] || []).length > 1 ? 's' : ''}
-                            {!eleve.pin && ' · PIN non défini'}
-                          </p>
-                        </div>
-                        {ouvert ? <ChevronUp size={18} className="text-roche-500" /> : <ChevronDown size={18} className="text-roche-500" />}
+                        <option value="">Sexe</option>
+                        <option value="F">F</option>
+                        <option value="M">M</option>
+                      </select>
+                      <input
+                        value={nouvelEleveEquipe}
+                        onChange={(e) => setNouvelEleveEquipe(e.target.value)}
+                        placeholder="Équipe (ex : Équipe 1)"
+                        className="flex-1 rounded-xl border border-roche-200 px-3.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-roche-500"
+                      />
+                      <button type="submit" className="bg-roche-800 hover:bg-roche-700 text-white text-sm font-medium px-3.5 py-2 rounded-xl transition">
+                        Ajouter
                       </button>
+                    </form>
+                  )}
 
-                      {ouvert && (
-                        <div className="px-4 pb-4 space-y-2">
-                          {eleveEnEdition === eleve.id && (
-                            <form
-                              onSubmit={(e) => {
-                                e.preventDefault()
-                                enregistrerEdition(eleve.id)
-                              }}
-                              className="flex flex-col sm:flex-row gap-2 mb-2"
-                            >
-                              <input
-                                value={editPrenom}
-                                onChange={(e) => setEditPrenom(e.target.value)}
-                                autoFocus
-                                className="flex-1 rounded-lg border border-roche-200 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-roche-500"
-                              />
-                              <input
-                                value={editNom}
-                                onChange={(e) => setEditNom(e.target.value)}
-                                className="flex-1 rounded-lg border border-roche-200 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-roche-500"
-                              />
-                              <select
-                                value={editSexe}
-                                onChange={(e) => setEditSexe(e.target.value)}
-                                className="rounded-lg border border-roche-200 px-2 py-1.5 text-sm bg-white"
-                              >
-                                <option value="">Sexe</option>
-                                <option value="F">F</option>
-                                <option value="M">M</option>
-                              </select>
-                              <div className="flex gap-1.5">
-                                <button type="submit" className="p-1.5 rounded-full bg-roche-800 text-white hover:bg-roche-700">
-                                  <Check size={14} />
+                  {elevesDeLaClasse.length === 0 && <p className="text-sm text-roche-500">Aucun élève dans cette classe.</p>}
+
+                  <div className="space-y-2">
+                    {elevesDeLaClasse.map((eleve) => {
+                      const eleveComplet = { id: eleve.id, nom: eleve.nom, prenom: eleve.prenom, classe: classeActive }
+                      const evalExistante = evaluations[cleEvaluation(eleveComplet)]
+                      const ouvert = eleveOuvert === eleve.id
+                      return (
+                        <div key={eleve.id} className="bg-roche-50 rounded-xl overflow-hidden">
+                          <button
+                            onClick={() => {
+                              setEleveOuvert(ouvert ? null : eleve.id)
+                              setPanneauOuvertPour(null)
+                            }}
+                            className="w-full flex items-center justify-between px-4 py-3"
+                          >
+                            <div className="text-left">
+                              <p className="text-sm font-medium text-roche-900">
+                                {eleve.prenom} {eleve.nom}
+                                {eleve.sexe && <span className="text-roche-400 font-normal"> ({eleve.sexe})</span>}
+                                {eleve.equipe && <span className="text-roche-400 font-normal"> · {eleve.equipe}</span>}
+                              </p>
+                              <p className="text-xs text-roche-500">
+                                {evalExistante?.scoreEleve !== undefined && `Auto-éval ${evalExistante.scoreEleve}%`}
+                                {evalExistante?.scoreEleve !== undefined && evalExistante?.scoreProf !== undefined && ' · '}
+                                {evalExistante?.scoreProf !== undefined && `Note prof ${evalExistante.scoreProf}/20`}
+                                {evalExistante?.noteCycle != null && ` · Suivi ${evalExistante.noteCycle}/20`}
+                                {evalExistante?.notePerformance != null && ` · Performance ${evalExistante.notePerformance}/20`}
+                                {evalExistante?.scoreEleve === undefined && evalExistante?.scoreProf === undefined && evalExistante?.noteCycle == null && evalExistante?.notePerformance == null && 'Pas encore évalué'}
+                                {' · '}{(passagesParEleve[cleEvaluation(eleveComplet)] || []).length} passage{(passagesParEleve[cleEvaluation(eleveComplet)] || []).length > 1 ? 's' : ''}
+                                {!eleve.pin && ' · PIN non défini'}
+                              </p>
+                            </div>
+                            {ouvert ? <ChevronUp size={18} className="text-roche-500" /> : <ChevronDown size={18} className="text-roche-500" />}
+                          </button>
+
+                          {ouvert && (
+                            <div className="px-4 pb-4 space-y-2">
+                              {eleveEnEdition === eleve.id && (
+                                <form
+                                  onSubmit={(e) => {
+                                    e.preventDefault()
+                                    enregistrerEdition(eleve.id)
+                                  }}
+                                  className="flex flex-col sm:flex-row gap-2 mb-2"
+                                >
+                                  <input
+                                    value={editPrenom}
+                                    onChange={(e) => setEditPrenom(e.target.value)}
+                                    autoFocus
+                                    className="flex-1 rounded-lg border border-roche-200 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-roche-500"
+                                  />
+                                  <input
+                                    value={editNom}
+                                    onChange={(e) => setEditNom(e.target.value)}
+                                    className="flex-1 rounded-lg border border-roche-200 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-roche-500"
+                                  />
+                                  <select
+                                    value={editSexe}
+                                    onChange={(e) => setEditSexe(e.target.value)}
+                                    className="rounded-lg border border-roche-200 px-2 py-1.5 text-sm bg-white"
+                                  >
+                                    <option value="">Sexe</option>
+                                    <option value="F">F</option>
+                                    <option value="M">M</option>
+                                  </select>
+                                  <input
+                                    value={editEquipe}
+                                    onChange={(e) => setEditEquipe(e.target.value)}
+                                    placeholder="Équipe"
+                                    className="flex-1 rounded-lg border border-roche-200 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-roche-500"
+                                  />
+                                  <div className="flex gap-1.5">
+                                    <button type="submit" className="p-1.5 rounded-full bg-roche-800 text-white hover:bg-roche-700">
+                                      <Check size={14} />
+                                    </button>
+                                    <button type="button" onClick={() => setEleveEnEdition(null)} className="p-1.5 rounded-full border border-roche-200 text-roche-600 hover:bg-roche-50">
+                                      <X size={14} />
+                                    </button>
+                                  </div>
+                                </form>
+                              )}
+                              <div className="flex items-center gap-2 mb-2 flex-wrap">
+                                <button
+                                  onClick={() => ouvrirEdition(eleve)}
+                                  className="flex items-center gap-1 text-[11px] font-medium text-roche-700 border border-roche-200 rounded-full px-2.5 py-1 hover:bg-white"
+                                >
+                                  <Pencil size={12} /> Modifier nom/prénom/équipe
                                 </button>
-                                <button type="button" onClick={() => setEleveEnEdition(null)} className="p-1.5 rounded-full border border-roche-200 text-roche-600 hover:bg-roche-50">
-                                  <X size={14} />
+                                <button
+                                  onClick={() => reinitialiserPin(eleve.id)}
+                                  className="flex items-center gap-1 text-[11px] font-medium text-roche-700 border border-roche-200 rounded-full px-2.5 py-1 hover:bg-white"
+                                >
+                                  <KeyRound size={12} /> Réinitialiser le PIN
+                                </button>
+                                <button
+                                  onClick={() => setPanneauOuvertPour(panneauOuvertPour?.id === eleve.id && panneauOuvertPour?.type === 'eval' ? null : { id: eleve.id, type: 'eval' })}
+                                  className="flex items-center gap-1 text-[11px] font-medium text-roche-700 border border-roche-200 rounded-full px-2.5 py-1 hover:bg-white"
+                                >
+                                  <ClipboardList size={12} /> {panneauOuvertPour?.id === eleve.id && panneauOuvertPour?.type === 'eval' ? 'Fermer' : 'Évaluer (référentiel)'}
+                                </button>
+                                <button
+                                  onClick={() => setPanneauOuvertPour(panneauOuvertPour?.id === eleve.id && panneauOuvertPour?.type === 'cycle' ? null : { id: eleve.id, type: 'cycle' })}
+                                  className="flex items-center gap-1 text-[11px] font-medium text-roche-700 border border-roche-200 rounded-full px-2.5 py-1 hover:bg-white"
+                                >
+                                  <Mountain size={12} /> {panneauOuvertPour?.id === eleve.id && panneauOuvertPour?.type === 'cycle' ? 'Fermer' : 'Suivi de cycle'}
+                                </button>
+                                <button
+                                  onClick={() => supprimerEleve(eleve.id)}
+                                  className="flex items-center gap-1 text-[11px] font-medium text-alerte border border-[#f0d3ca] rounded-full px-2.5 py-1 hover:bg-white"
+                                >
+                                  <UserX size={12} /> Retirer de la classe
                                 </button>
                               </div>
-                            </form>
-                          )}
-                          <div className="flex items-center gap-2 mb-2 flex-wrap">
-                            <button
-                              onClick={() => ouvrirEdition(eleve)}
-                              className="flex items-center gap-1 text-[11px] font-medium text-roche-700 border border-roche-200 rounded-full px-2.5 py-1 hover:bg-white"
-                            >
-                              <Pencil size={12} /> Modifier nom/prénom
-                            </button>
-                            <button
-                              onClick={() => reinitialiserPin(eleve.id)}
-                              className="flex items-center gap-1 text-[11px] font-medium text-roche-700 border border-roche-200 rounded-full px-2.5 py-1 hover:bg-white"
-                            >
-                              <KeyRound size={12} /> Réinitialiser le PIN
-                            </button>
-                            <button
-                              onClick={() => setPanneauOuvertPour(panneauOuvertPour?.id === eleve.id && panneauOuvertPour?.type === 'eval' ? null : { id: eleve.id, type: 'eval' })}
-                              className="flex items-center gap-1 text-[11px] font-medium text-roche-700 border border-roche-200 rounded-full px-2.5 py-1 hover:bg-white"
-                            >
-                              <ClipboardList size={12} /> {panneauOuvertPour?.id === eleve.id && panneauOuvertPour?.type === 'eval' ? 'Fermer' : 'Évaluer (référentiel)'}
-                            </button>
-                            <button
-                              onClick={() => setPanneauOuvertPour(panneauOuvertPour?.id === eleve.id && panneauOuvertPour?.type === 'cycle' ? null : { id: eleve.id, type: 'cycle' })}
-                              className="flex items-center gap-1 text-[11px] font-medium text-roche-700 border border-roche-200 rounded-full px-2.5 py-1 hover:bg-white"
-                            >
-                              <Mountain size={12} /> {panneauOuvertPour?.id === eleve.id && panneauOuvertPour?.type === 'cycle' ? 'Fermer' : 'Suivi de cycle'}
-                            </button>
-                            <button
-                              onClick={() => supprimerEleve(eleve.id)}
-                              className="flex items-center gap-1 text-[11px] font-medium text-alerte border border-[#f0d3ca] rounded-full px-2.5 py-1 hover:bg-white"
-                            >
-                              <UserX size={12} /> Retirer de la classe
-                            </button>
-                          </div>
 
-                          {panneauOuvertPour?.id === eleve.id && panneauOuvertPour?.type === 'eval' && (
-                            <div className="bg-white rounded-xl p-3">
-                              <EvaluationProf
-                                eleve={eleveComplet}
-                                evaluationExistante={evalExistante}
-                                onEnregistre={(patch) =>
-                                  setEvaluations((ev) => ({ ...ev, [cleEvaluation(eleveComplet)]: { ...ev[cleEvaluation(eleveComplet)], ...patch } }))
-                                }
-                              />
-                            </div>
-                          )}
+                              {panneauOuvertPour?.id === eleve.id && panneauOuvertPour?.type === 'eval' && (
+                                <div className="bg-white rounded-xl p-3">
+                                  <EvaluationProf
+                                    eleve={eleveComplet}
+                                    evaluationExistante={evalExistante}
+                                    onEnregistre={(patch) =>
+                                      setEvaluations((ev) => ({ ...ev, [cleEvaluation(eleveComplet)]: { ...ev[cleEvaluation(eleveComplet)], ...patch } }))
+                                    }
+                                  />
+                                </div>
+                              )}
 
-                          {panneauOuvertPour?.id === eleve.id && panneauOuvertPour?.type === 'cycle' && (
-                            <div className="bg-white rounded-xl p-3">
-                              <SuiviEleveProf
-                                eleve={eleveComplet}
-                                passages={passagesParEleve[cleEvaluation(eleveComplet)] || []}
-                                evaluationExistante={evalExistante}
-                                onEnregistre={(patch) =>
-                                  setEvaluations((ev) => ({ ...ev, [cleEvaluation(eleveComplet)]: { ...ev[cleEvaluation(eleveComplet)], ...patch } }))
-                                }
-                              />
+                              {panneauOuvertPour?.id === eleve.id && panneauOuvertPour?.type === 'cycle' && (
+                                <div className="bg-white rounded-xl p-3">
+                                  <SuiviEleveProf
+                                    eleve={eleveComplet}
+                                    passages={passagesParEleve[cleEvaluation(eleveComplet)] || []}
+                                    observations={observationsParEleve[cleEvaluation(eleveComplet)] || []}
+                                    evaluationExistante={evalExistante}
+                                    onEnregistre={(patch) =>
+                                      setEvaluations((ev) => ({ ...ev, [cleEvaluation(eleveComplet)]: { ...ev[cleEvaluation(eleveComplet)], ...patch } }))
+                                    }
+                                  />
+                                </div>
+                              )}
                             </div>
                           )}
                         </div>
-                      )}
-                    </div>
-                  )
-                })}
-              </div>
+                      )
+                    })}
+                  </div>
+                </>
+              )}
             </>
           )}
         </section>
@@ -379,6 +508,8 @@ export default function EnseignantDashboard({ videos, onSaveVideo, onRemovePhase
           onFermer={() => setImportOuvert(false)}
         />
       )}
+
+      <DetailCellule detail={detailCellule} onFermer={() => setDetailCellule(null)} onSupprimer={supprimerPassageDepuisDetail} />
     </div>
   )
 }
