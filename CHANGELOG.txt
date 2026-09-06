@@ -2,6 +2,57 @@ ESCALADE PRO — JOURNAL DES TRANSFORMATIONS
 By C. Guilhem
 ======================================
 
+v3.2.0 — Tableau de performance de cycle (observé par le prof)
+--------------------------------------
+- Nouveau second tableau, réservé à l'espace enseignant (onglet "Élèves &
+  suivi" > "Performance (observée)") : même présentation que le tableau de
+  suivi (17 voies × 3 sous-colonnes, groupé par équipe), mais alimenté
+  uniquement par ce que le prof a lui-même vu et saisi — pas par les
+  déclarations des élèves.
+- Formulaire "Nouvelle observation" : voie, couleurs de prise, mode
+  (Tête/Moulinette/Moulitête), hauteur atteinte, plus le choix du
+  grimpeur observé et/ou de l'assureur observé (les deux à la fois si
+  c'est la même grimpe), avec une qualité d'assurage (Insuffisant/
+  Correct/Maîtrisé) pour l'assureur. Génère les mêmes codes compacts que
+  le tableau déclaratif (T3, AMT4...), affichés en gras si la voie a été
+  réalisée entièrement.
+- Sur la fiche de suivi de chaque élève (espace enseignant), un nouveau
+  bilan "Observations du prof (performance)" s'ajoute au bilan déclaratif
+  existant, et une nouvelle "Note de performance de cycle" (/20, basée sur
+  ce que le prof a observé) s'ajoute à côté de la "Note de suivi de
+  cycle" existante (renommée pour préciser qu'elle reste basée sur le
+  déclaratif élève) — les deux notes sont désormais clairement distinctes
+  et alimentent chacune une partie différente de la note générale.
+
+v3.1.0 — Tableau récapitulatif de suivi de cycle
+--------------------------------------
+- Nouveau tableau récapitulatif de suivi de cycle dans l'espace enseignant
+  (onglet "Élèves & suivi" > "Tableau de suivi") : 1 ligne par élève de la
+  classe, regroupées visuellement par équipe (binôme/trinôme), 17 voies en
+  colonnes, chacune divisée en 3 sous-colonnes (voie réalisée à 3, 2 puis
+  1 couleur(s) de prise), avec en en-tête le nom de la couleur et sa
+  difficulté (ex. "Rouge 5b+").
+- Chaque case affiche un code compact généré automatiquement à partir des
+  passages enregistrés par l'élève : lettre de technique (T = Tête,
+  M = Moulinette, MT = Moulitête), préfixe "A" si le passage a été réalisé
+  en tant qu'Assureur, numéro de la dernière dégaine passée si la voie n'a
+  pas été terminée (rien si elle a été réalisée entièrement). Plusieurs
+  passages dans une même case sont concaténés avec "/", ex. "T3/AMT4".
+  Cliquer sur une case affiche le détail (date, rôle, mode, dégaine,
+  camarade assuré le cas échéant).
+- La fiche de suivi de l'élève affiche désormais le même tableau, limité à
+  ses propres réalisations, en plus de son historique détaillé déjà
+  existant.
+- Nouveau champ "camarade assuré" dans le formulaire de passage, affiché
+  quand le rôle choisi est "Assureur" (liste des élèves de la même classe).
+- Nouveau champ "équipe" (binôme/trinôme) sur la fiche de chaque élève,
+  modifiable depuis l'espace enseignant (vue "Liste" > "Modifier"), utilisé
+  pour le regroupement visuel dans le tableau de suivi.
+- La configuration des voies (onglet "Voies") permet désormais de saisir,
+  en plus de la difficulté, le nom de la couleur de prise pour 3, 2 puis
+  1 couleur(s) utilisée(s) ; l'ancienne configuration (difficulté seule,
+  sans nom de couleur) reste compatible et s'affiche simplement sans nom.
+
 v3.0.3 — Identifiants Firebase renseignés
 --------------------------------------
 - Le projet Firebase de Christophe (escalade-pro-3cd6d) n'avait en fait
