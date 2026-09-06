@@ -71,10 +71,10 @@ export const storage = {
     write(KEYS.ROSTER, roster)
   },
 
-  ajouterEleveManuel: (classe, nom, prenom, sexe = null) => {
+  ajouterEleveManuel: (classe, nom, prenom, sexe = null, equipe = null) => {
     const roster = getRosterBrut()
     if (!roster[classe]) roster[classe] = []
-    const eleve = { id: idEleve(), nom: nom.trim(), prenom: prenom.trim(), pin: null, sexe: sexe || null }
+    const eleve = { id: idEleve(), nom: nom.trim(), prenom: prenom.trim(), pin: null, sexe: sexe || null, equipe: equipe || null }
     roster[classe].push(eleve)
     write(KEYS.ROSTER, roster)
     return eleve
@@ -90,13 +90,14 @@ export const storage = {
     return nom
   },
 
-  modifierEleve: (classe, eleveId, { nom, prenom, sexe }) => {
+  modifierEleve: (classe, eleveId, { nom, prenom, sexe, equipe }) => {
     const roster = getRosterBrut()
     const eleve = (roster[classe] || []).find((e) => e.id === eleveId)
     if (eleve) {
       eleve.nom = nom.trim()
       eleve.prenom = prenom.trim()
       if (sexe !== undefined) eleve.sexe = sexe || null
+      if (equipe !== undefined) eleve.equipe = equipe ? equipe.trim() : null
       write(KEYS.ROSTER, roster)
       return true
     }
