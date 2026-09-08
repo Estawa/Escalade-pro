@@ -3,7 +3,7 @@
 // lettre : a, b ou c (sous-classement dans le chiffre)
 // plus : suffixe optionnel "+" quand la voie est à cheval entre deux difficultés proches
 
-export const CHIFFRES = [3, 4, 5, 6, 7]
+export const CHIFFRES = [3, 4, 5, 6, 7, 8]
 export const LETTRES = ['a', 'b', 'c']
 
 export function formatDifficulte({ chiffre, lettre, plus }) {
@@ -12,7 +12,7 @@ export function formatDifficulte({ chiffre, lettre, plus }) {
 }
 
 export function parseDifficulte(chaine) {
-  const m = /^([3-7])([a-c])(\+)?$/.exec((chaine || '').trim())
+  const m = /^([3-8])([a-c])(\+)?$/.exec((chaine || '').trim())
   if (!m) return { chiffre: '', lettre: '', plus: false }
   return { chiffre: m[1], lettre: m[2], plus: !!m[3] }
 }
