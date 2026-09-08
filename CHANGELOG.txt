@@ -2,6 +2,15 @@ ESCALADE PRO — JOURNAL DES TRANSFORMATIONS
 By C. Guilhem
 ======================================
 
+v3.2.1 — Correctif : sélection de la difficulté des voies
+--------------------------------------
+- Correction d'un bug dans la configuration des voies (espace enseignant,
+  onglet "Référentiel") : la sélection du chiffre, de la lettre ou du "+"
+  d'une difficulté disparaissait aussitôt tant que les trois éléments
+  n'étaient pas tous renseignés, rendant impossible tout changement de
+  difficulté. La sélection en cours est désormais conservée à l'écran
+  jusqu'à ce qu'elle soit complète.
+
 v3.2.0 — Tableau de performance de cycle (observé par le prof)
 --------------------------------------
 - Nouveau second tableau, réservé à l'espace enseignant (onglet "Élèves &
