@@ -61,7 +61,7 @@ function normaliserCouleur(valeur) {
 export function voiesParDefaut() {
   return Array.from({ length: 17 }, (_, i) => ({
     numero: i + 1,
-    couleurs: { 1: { nom: "", difficulte: "" }, 2: { nom: "", difficulte: "" }, 3: { nom: "", difficulte: "" } }
+    couleurs: { 1: { nom: "", difficulte: "" }, 2: { nom: "", difficulte: "" }, 3: { nom: "", difficulte: "" }, 4: { nom: "", difficulte: "" } }
   }));
 }
 
@@ -73,7 +73,8 @@ export async function loadVoies() {
       couleurs: {
         1: normaliserCouleur(v.couleurs?.[1]),
         2: normaliserCouleur(v.couleurs?.[2]),
-        3: normaliserCouleur(v.couleurs?.[3])
+        3: normaliserCouleur(v.couleurs?.[3]),
+        4: normaliserCouleur(v.couleurs?.[4])
       }
     }));
   }
