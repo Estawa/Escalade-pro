@@ -2,6 +2,13 @@ ESCALADE PRO — JOURNAL DES TRANSFORMATIONS
 By C. Guilhem
 ======================================
 
+v3.3.0 — 4e sous-colonne de couleurs et difficulté jusqu'à 8
+--------------------------------------
+- Chaque voie peut désormais avoir une difficulté définie pour 4 couleurs
+  de prise utilisées, en plus de 3, 2 et 1 (paramétrage, tableaux de suivi
+  et de performance, formulaires de saisie des élèves et du prof).
+- Le sélecteur de difficulté va maintenant jusqu'à 8 (au lieu de 7).
+
 v3.2.1 — Correctif : sélection de la difficulté des voies
 --------------------------------------
 - Correction d'un bug dans la configuration des voies (espace enseignant,
