@@ -185,6 +185,7 @@ export default function SuiviCycle({ eleve, voies, passages, setPassages, charge
           <div>
             <label className="block text-xs text-roche-600 mb-1">Couleurs de prise utilisées</label>
             <select value={nbCouleurs} onChange={(e) => setNbCouleurs(e.target.value)} className="w-full rounded-lg border border-roche-200 px-2.5 py-2 text-sm bg-white">
+              <option value={4}>4 couleurs</option>
               <option value={3}>3 couleurs</option>
               <option value={2}>2 couleurs</option>
               <option value={1}>1 couleur</option>

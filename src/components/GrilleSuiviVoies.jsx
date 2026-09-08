@@ -1,7 +1,7 @@
 import { Fragment } from 'react'
 import { codeCourtCellule, passagesCellule, celluleAuMoinsUneReussite } from '../utils/passages.js'
 
-const SOUS_COLONNES = [3, 2, 1] // ordre d'affichage : 3 couleurs, puis 2, puis 1
+const SOUS_COLONNES = [4, 3, 2, 1] // ordre d'affichage : 4 couleurs, puis 3, puis 2, puis 1
 
 // Tableau générique de suivi de cycle : 1 ligne par élève (ou 1 seule ligne côté élève),
 // 17 voies en colonnes, chacune divisée en 3 sous-colonnes (3/2/1 couleur(s) de prise).
@@ -33,7 +33,7 @@ export default function GrilleSuiviVoies({ voies, lignes, onCellClick, grouperPa
             {voies.map((v) => (
               <th
                 key={v.numero}
-                colSpan={3}
+                colSpan={SOUS_COLONNES.length}
                 className="text-center px-1 py-1 text-roche-700 font-semibold border-b border-l border-roche-200 bg-roche-50 whitespace-nowrap"
               >
                 Voie {v.numero}
@@ -61,7 +61,7 @@ export default function GrilleSuiviVoies({ voies, lignes, onCellClick, grouperPa
         <tbody>
           {lignesTriees.length === 0 && (
             <tr>
-              <td colSpan={1 + voies.length * 3} className="px-2 py-3 text-roche-500 text-center">
+              <td colSpan={1 + voies.length * SOUS_COLONNES.length} className="px-2 py-3 text-roche-500 text-center">
                 Aucun élève à afficher.
               </td>
             </tr>
@@ -73,7 +73,7 @@ export default function GrilleSuiviVoies({ voies, lignes, onCellClick, grouperPa
               <Fragment key={ligne.key}>
                 {nouvelleEquipe && ligne.equipe && (
                   <tr className="bg-roche-100">
-                    <td colSpan={1 + voies.length * 3} className="px-2 py-1 text-[10px] font-semibold uppercase text-roche-700 sticky left-0 bg-roche-100">
+                    <td colSpan={1 + voies.length * SOUS_COLONNES.length} className="px-2 py-1 text-[10px] font-semibold uppercase text-roche-700 sticky left-0 bg-roche-100">
                       {ligne.equipe}
                     </td>
                   </tr>

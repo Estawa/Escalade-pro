@@ -4,7 +4,7 @@ import DifficulteSelect from './DifficulteSelect.jsx'
 import { formatDifficulte, parseDifficulte } from '../utils/difficulte.js'
 import { loadVoies, saveVoies, voiesParDefaut } from '../firebase.js'
 
-const SOUS_COLONNES = [3, 2, 1] // ordre d'affichage : 3 couleurs, puis 2, puis 1
+const SOUS_COLONNES = [4, 3, 2, 1] // ordre d'affichage : 4 couleurs, puis 3, puis 2, puis 1
 
 export default function VoiesConfig() {
   const [voies, setVoies] = useState(voiesParDefaut())
@@ -44,7 +44,7 @@ export default function VoiesConfig() {
     <div>
       <p className="text-sm text-roche-600 mb-4">
         Pour chaque voie du mur (1 à 17), indique le nom de la couleur de prise et la difficulté correspondante
-        pour 3, 2 puis 1 couleur(s) utilisée(s). Laisse vide si une combinaison n'existe pas sur cette voie.
+        pour 4, 3, 2 puis 1 couleur(s) utilisée(s). Laisse vide si une combinaison n'existe pas sur cette voie.
         Cette configuration sert d'en-tête au tableau de suivi de cycle et pré-remplit la difficulté saisie par
         les élèves.
       </p>
