@@ -10,6 +10,7 @@ export default function VoiesConfig() {
   const [voies, setVoies] = useState(voiesParDefaut())
   const [chargement, setChargement] = useState(true)
   const [message, setMessage] = useState('')
+  const [difficulteEnCours, setDifficulteEnCours] = useState({})
 
   useEffect(() => {
     loadVoies()
@@ -63,7 +64,8 @@ export default function VoiesConfig() {
                 <td className="px-2 py-2 font-medium text-roche-900">Voie {v.numero}</td>
                 {SOUS_COLONNES.map((n) => {
                   const c = v.couleurs[n] || { nom: '', difficulte: '' }
-                  const d = parseDifficulte(c.difficulte)
+                  const cle = `${v.numero}-${n}`
+                  const d = difficulteEnCours[cle] ?? parseDifficulte(c.difficulte)
                   return (
                     <td key={n} className="px-2 py-2">
                       <div className="space-y-1.5">
@@ -78,7 +80,11 @@ export default function VoiesConfig() {
                           chiffre={d.chiffre}
                           lettre={d.lettre}
                           plus={d.plus}
-                          onChange={(patch) => setCouleur(v.numero, n, { difficulte: formatDifficulte({ ...d, ...patch }) })}
+                          onChange={(patch) => {
+                            const fusion = { ...d, ...patch }
+                            setDifficulteEnCours((edits) => ({ ...edits, [cle]: fusion }))
+                            setCouleur(v.numero, n, { difficulte: formatDifficulte(fusion) })
+                          }}
                         />
                       </div>
                     </td>
