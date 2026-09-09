@@ -1,6 +1,59 @@
 import { useMemo, useState } from 'react'
-import { Mountain, ChevronLeft, Lock } from 'lucide-react'
+import { Mountain, ChevronLeft, Lock, Share2, Copy, Check, ChevronRight } from 'lucide-react'
 import { storage } from '../utils/storage'
+
+function PartagerApp() {
+  const [ouvert, setOuvert] = useState(false)
+  const [copie, setCopie] = useState(false)
+  const url = typeof window !== 'undefined' ? window.location.origin : ''
+  const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&margin=8&data=${encodeURIComponent(url)}`
+
+  const copier = async () => {
+    try {
+      await navigator.clipboard.writeText(url)
+      setCopie(true)
+      setTimeout(() => setCopie(false), 2000)
+    } catch (e) {}
+  }
+
+  const partager = async () => {
+    if (navigator.share) {
+      try { await navigator.share({ title: 'Escalade Pro', text: "Application de sécurité et d'assurage en escalade", url }) } catch (e) { /* annulé */ }
+    } else {
+      copier()
+    }
+  }
+
+  return (
+    <div className="max-w-md mx-auto mb-6 bg-white border border-roche-200 rounded-xl p-3.5">
+      <button onClick={() => setOuvert((o) => !o)} className="w-full flex items-center justify-between">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-full bg-roche-50 flex items-center justify-center">
+            <Share2 size={14} className="text-roche-500" />
+          </div>
+          <p className="text-sm font-medium text-roche-800">Partager l'appli</p>
+        </div>
+        <ChevronRight size={16} className={`text-roche-400 transition ${ouvert ? 'rotate-90' : ''}`} />
+      </button>
+
+      {ouvert && (
+        <div className="mt-4 flex flex-col items-center gap-3">
+          <div className="bg-white p-2.5 rounded-xl border border-roche-100">
+            <img src={qrSrc} alt="QR code de l'appli" width={160} height={160} />
+          </div>
+          <p className="text-xs text-roche-500 text-center break-all px-2">{url || "Adresse disponible une fois l'appli déployée"}</p>
+          <button onClick={partager} className="w-full bg-roche-800 text-white text-xs font-medium rounded-lg py-2.5 flex items-center justify-center gap-1.5">
+            <Share2 size={13} /> Partager le lien
+          </button>
+          <button onClick={copier} className="w-full bg-roche-50 text-roche-700 text-xs font-medium rounded-lg py-2.5 flex items-center justify-center gap-1.5">
+            {copie ? <><Check size={13} /> Lien copié</> : <><Copy size={13} /> Copier le lien</>}
+          </button>
+          <p className="text-[10px] text-roche-400 text-center">Fais scanner ce code, partage le lien via ta messagerie préférée, ou transmets-le pour que chaque élève installe l'appli sur son téléphone.</p>
+        </div>
+      )}
+    </div>
+  )
+}
 
 export default function EleveLogin({ onConnecte }) {
   const classes = useMemo(() => storage.getClasses(), [])
@@ -82,6 +135,7 @@ export default function EleveLogin({ onConnecte }) {
   if (etape === 'saisieLibre') {
     return (
       <div className="max-w-md mx-auto px-6 py-14">
+        <PartagerApp />
         <div className="flex flex-col items-center text-center mb-8">
           <div className="w-16 h-16 rounded-2xl bg-roche-800 flex items-center justify-center mb-4">
             <Mountain className="text-roche-200" size={30} />
@@ -116,6 +170,7 @@ export default function EleveLogin({ onConnecte }) {
   if (etape === 'classe') {
     return (
       <div className="max-w-md mx-auto px-6 py-14">
+        <PartagerApp />
         <div className="flex flex-col items-center text-center mb-8">
           <div className="w-16 h-16 rounded-2xl bg-roche-800 flex items-center justify-center mb-4">
             <Mountain className="text-roche-200" size={30} />
