@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import {
   Upload, ChevronDown, ChevronUp, KeyRound, UserX, Pencil, UserPlus,
-  FolderPlus, FolderX, Check, X, ClipboardList, Mountain, Table, List, Eye
+  FolderPlus, FolderX, Check, X, ClipboardList, Mountain, Table, List, Eye,
+  Share2, Copy, ChevronRight
 } from 'lucide-react'
 import Referentiel from './Referentiel.jsx'
 import ImportEleves from './ImportEleves.jsx'
@@ -14,6 +15,59 @@ import DetailCellule from './DetailCellule.jsx'
 import TableauPerformanceProf from './TableauPerformanceProf.jsx'
 import { storage } from '../utils/storage.js'
 import { loadAllEvaluations, cleEvaluation, loadAllPassages, loadAllObservations, loadVoies, voiesParDefaut, supprimerPassage } from '../firebase.js'
+
+function PartagerApp() {
+  const [ouvert, setOuvert] = useState(false)
+  const [copie, setCopie] = useState(false)
+  const url = typeof window !== 'undefined' ? window.location.origin : ''
+  const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&margin=8&data=${encodeURIComponent(url)}`
+
+  const copier = async () => {
+    try {
+      await navigator.clipboard.writeText(url)
+      setCopie(true)
+      setTimeout(() => setCopie(false), 2000)
+    } catch (e) {}
+  }
+
+  const partager = async () => {
+    if (navigator.share) {
+      try { await navigator.share({ title: 'Escalade Pro', text: 'Application de sécurité et d\'assurage en escalade', url }) } catch (e) { /* annulé */ }
+    } else {
+      copier()
+    }
+  }
+
+  return (
+    <div className="bg-white border border-roche-200 rounded-xl p-3.5 mb-4">
+      <button onClick={() => setOuvert((o) => !o)} className="w-full flex items-center justify-between">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-full bg-roche-50 flex items-center justify-center">
+            <Share2 size={14} className="text-roche-500" />
+          </div>
+          <p className="text-sm font-medium text-roche-800">Partager l'appli</p>
+        </div>
+        <ChevronRight size={16} className={`text-roche-400 transition ${ouvert ? 'rotate-90' : ''}`} />
+      </button>
+
+      {ouvert && (
+        <div className="mt-4 flex flex-col items-center gap-3">
+          <div className="bg-white p-2.5 rounded-xl border border-roche-100">
+            <img src={qrSrc} alt="QR code de l'appli" width={160} height={160} />
+          </div>
+          <p className="text-xs text-roche-500 text-center break-all px-2">{url || 'Adresse disponible une fois l\'appli déployée'}</p>
+          <button onClick={partager} className="w-full bg-roche-800 text-white text-xs font-medium rounded-lg py-2.5 flex items-center justify-center gap-1.5">
+            <Share2 size={13} /> Partager le lien
+          </button>
+          <button onClick={copier} className="w-full bg-roche-50 text-roche-700 text-xs font-medium rounded-lg py-2.5 flex items-center justify-center gap-1.5">
+            {copie ? <><Check size={13} /> Lien copié</> : <><Copy size={13} /> Copier le lien</>}
+          </button>
+          <p className="text-[10px] text-roche-400 text-center">Fais scanner ce code, partage le lien via ta messagerie préférée, ou transmets-le pour que chaque élève installe l'appli sur son téléphone.</p>
+        </div>
+      )}
+    </div>
+  )
+}
 
 export default function EnseignantDashboard({ videos, onSaveVideo, onRemovePhase }) {
   const [onglet, setOnglet] = useState('referentiel') // referentiel | voies | suivi
@@ -169,6 +223,8 @@ export default function EnseignantDashboard({ videos, onSaveVideo, onRemovePhase
         <h2 className="font-display text-2xl text-roche-900">Espace enseignant</h2>
         <ChangerPin />
       </div>
+
+      <PartagerApp />
 
       <div className="flex gap-1.5 mb-6 bg-roche-50 rounded-full p-1 w-fit">
         {[
