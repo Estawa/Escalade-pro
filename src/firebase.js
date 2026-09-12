@@ -28,9 +28,12 @@ export async function saveVideoForItem(key, data) {
   await setDoc(doc(db, VIDEOS_COLLECTION, key), data);
 }
 
-// Clé stable par élève identifié (indépendante d'un renommage de classe/élève après coup).
+// Clé stable par élève identifié (indépendante d'un renommage de classe/élève après coup),
+// préfixée par l'enseignant (teacherId) auquel appartient l'élève : chaque enseignant a sa
+// propre base d'élèves et de suivi, isolée de celle des autres. "admin" = Christophe.
 export function cleEvaluation(eleve) {
-  return eleve.id ? eleve.id : `${eleve.nom}__${eleve.prenom}__${eleve.classe}`.toLowerCase();
+  const base = eleve.id ? eleve.id : `${eleve.nom}__${eleve.prenom}__${eleve.classe}`.toLowerCase();
+  return `${eleve.teacherId || "admin"}__${base}`;
 }
 
 export async function saveEvaluation(eleve, data) {
@@ -168,7 +171,7 @@ const ACCES_DOC_ID = "config";
 // Firebase), le code déjà en vigueur localement sur l'appareil de l'administrateur, pour ne
 // pas le bloquer hors de son propre code d'accès actuel.
 export function accesParDefaut(pinAdminParDefaut) {
-  return { pinAdmin: pinAdminParDefaut || "4242", collegues: [] };
+  return { pinAdmin: pinAdminParDefaut || "4242", nomAdmin: "Christophe Guilhem", collegues: [] };
 }
 
 export async function loadAccesConfig(pinAdminParDefaut) {
@@ -177,6 +180,7 @@ export async function loadAccesConfig(pinAdminParDefaut) {
     const d = snap.data();
     return {
       pinAdmin: d.pinAdmin || pinAdminParDefaut || "4242",
+      nomAdmin: d.nomAdmin || "Christophe Guilhem",
       collegues: Array.isArray(d.collegues) ? d.collegues : [],
     };
   }
@@ -185,6 +189,22 @@ export async function loadAccesConfig(pinAdminParDefaut) {
 
 export async function saveAccesConfig(config) {
   await setDoc(doc(db, ACCES_COLLECTION, ACCES_DOC_ID), config);
+}
+
+// --- Roster (classes + élèves) de chaque enseignant : { classe: [eleves] }. Un document par
+// enseignant (id = teacherId, "admin" pour Christophe, sinon l'id du collègue dans escalade_acces),
+// pour que chaque enseignant ait sa propre base d'élèves, isolée de celle des autres, synchronisée
+// sur tous ses appareils. Christophe (admin) peut aussi charger/modifier le roster de n'importe
+// quel collègue depuis l'onglet "Vue globale". ---
+const ROSTER_COLLECTION = "escalade_roster";
+
+export async function loadRosterTeacher(teacherId) {
+  const snap = await getDoc(doc(db, ROSTER_COLLECTION, teacherId));
+  return snap.exists() && snap.data().classes ? snap.data().classes : {};
+}
+
+export async function saveRosterTeacher(teacherId, roster) {
+  await setDoc(doc(db, ROSTER_COLLECTION, teacherId), { classes: roster });
 }
 
 // --- Observations du prof : ce que l'enseignant a vu et jugé lui-même (grimpeur ET/OU assureur),
