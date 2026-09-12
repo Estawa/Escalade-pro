@@ -249,7 +249,7 @@ export default function App() {
       )}
 
       {ecran === 'demarrage' && !chargementEleve && (
-        <Demarrage onCommencer={() => setEcran('accueil')} onAccesEnseignant={handleAccesEnseignant} />
+        <Demarrage onTermine={() => setEcran('accueil')} />
       )}
 
       {ecran === 'accueil' && !chargementEleve && (
