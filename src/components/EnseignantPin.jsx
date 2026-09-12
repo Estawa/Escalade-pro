@@ -1,19 +1,24 @@
 import { useState } from 'react'
 import { Lock } from 'lucide-react'
-import { storage } from '../utils/storage'
 
-export default function EnseignantPin({ onValide }) {
+// onValide({ role: 'admin' | 'collegue', nomCollegue? })
+export default function EnseignantPin({ accesConfig, onValide }) {
   const [pin, setPin] = useState('')
   const [erreur, setErreur] = useState(false)
 
   function valider(e) {
     e.preventDefault()
-    if (pin === storage.getPinEnseignant()) {
-      onValide()
-    } else {
-      setErreur(true)
-      setPin('')
+    if (pin === accesConfig.pinAdmin) {
+      onValide({ role: 'admin' })
+      return
     }
+    const collegue = (accesConfig.collegues || []).find((c) => c.pin === pin)
+    if (collegue) {
+      onValide({ role: 'collegue', nomCollegue: collegue.nom })
+      return
+    }
+    setErreur(true)
+    setPin('')
   }
 
   return (

@@ -1,6 +1,10 @@
 import { useState } from 'react'
 import { MODULES } from '../data.js'
 import { styles } from '../styles.js'
+import Lightbox from './Lightbox.jsx'
+
+const styleBoutonMedia = { ...styles.videoLink, background: 'none', border: 'none', padding: 0, cursor: 'pointer', textAlign: 'left', font: 'inherit', width: '100%' }
+const styleBoutonMediaSmall = { ...styles.videoLinkSmall, background: 'none', border: 'none', padding: 0, cursor: 'pointer', textAlign: 'left', font: 'inherit', width: '100%' }
 
 export function itemKey(moduleId, itemId) {
   return `${moduleId}-${itemId}`
@@ -40,6 +44,7 @@ export default function Referentiel({
   const [brouillon, setBrouillon] = useState({ titre: '', texte: '' })
   const [ajoutOuvert, setAjoutOuvert] = useState(null) // id du module où le formulaire d'ajout est ouvert
   const [nouvel, setNouvel] = useState({ titre: '', texte: '' })
+  const [lightbox, setLightbox] = useState(null) // { kind: 'photo'|'video', src, titre } | null
 
   const config = referentielConfig || { overrides: {}, extra: {}, supprimes: [] }
 
@@ -121,12 +126,23 @@ export default function Referentiel({
                     </div>
 
                     {v.demo && (
-                      <a href={v.demo} target="_blank" rel="noreferrer" style={styles.videoLink}>▶ Voir la vidéo de démonstration</a>
+                      <button
+                        style={styleBoutonMedia}
+                        onClick={() => setLightbox({ kind: 'video', src: v.demo, titre: `${it.titre} — vidéo de démonstration` })}
+                      >
+                        ▶ Voir la vidéo de démonstration
+                      </button>
                     )}
                     {v.phases && v.phases.length > 0 && (
                       <div style={styles.phasesList}>
                         {v.phases.map((p, i) => (
-                          <a key={i} href={p} target="_blank" rel="noreferrer" style={styles.videoLinkSmall}>▶ Phase d'apprentissage {i + 1}</a>
+                          <button
+                            key={i}
+                            style={styleBoutonMediaSmall}
+                            onClick={() => setLightbox({ kind: 'video', src: p, titre: `${it.titre} — phase d'apprentissage ${i + 1}` })}
+                          >
+                            ▶ Phase d'apprentissage {i + 1}
+                          </button>
                         ))}
                       </div>
                     )}
@@ -134,9 +150,12 @@ export default function Referentiel({
                       <div style={styles.photosGrid}>
                         {v.photos.map((src, i) => (
                           <div key={i} style={styles.photoThumbWrap}>
-                            <a href={src} target="_blank" rel="noreferrer">
+                            <button
+                              style={{ display: 'block', background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
+                              onClick={() => setLightbox({ kind: 'photo', src, titre: it.titre })}
+                            >
                               <img src={src} alt="" style={styles.photoThumb} />
-                            </a>
+                            </button>
                             {modeProf && (
                               <button style={styles.photoRemoveBtn} title="Retirer cette image" onClick={() => onRemovePhoto(key, i)}>✕</button>
                             )}
@@ -212,6 +231,8 @@ export default function Referentiel({
           </div>
         )
       })}
+
+      <Lightbox media={lightbox} onFermer={() => setLightbox(null)} />
     </div>
   )
 }

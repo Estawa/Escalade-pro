@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { KeyRound, Check, X } from 'lucide-react'
-import { storage } from '../utils/storage'
 
-export default function ChangerPin() {
+// pinActuel : accesConfig.pinAdmin (Firebase). onChanger(nouveauPin) persiste le changement.
+export default function ChangerPin({ pinActuel, onChanger }) {
   const [ouvert, setOuvert] = useState(false)
   const [actuel, setActuel] = useState('')
   const [nouveau, setNouveau] = useState('')
@@ -20,7 +20,7 @@ export default function ChangerPin() {
 
   function valider(e) {
     e.preventDefault()
-    if (actuel !== storage.getPinEnseignant()) {
+    if (actuel !== pinActuel) {
       setErreur(true)
       setMessage('Code actuel incorrect.')
       return
@@ -35,9 +35,9 @@ export default function ChangerPin() {
       setMessage('Les deux saisies du nouveau code ne correspondent pas.')
       return
     }
-    storage.setPinEnseignant(nouveau)
+    onChanger(nouveau)
     setErreur(false)
-    setMessage('Code d\'accès mis à jour.')
+    setMessage("Code d'accès mis à jour.")
     setActuel('')
     setNouveau('')
     setConfirmation('')
@@ -49,7 +49,7 @@ export default function ChangerPin() {
         onClick={() => setOuvert(true)}
         className="flex items-center gap-1.5 text-xs font-medium text-roche-700 hover:text-roche-900"
       >
-        <KeyRound size={14} /> Modifier le code d'accès
+        <KeyRound size={14} /> Modifier mon code d'accès
       </button>
     )
   }
@@ -57,7 +57,7 @@ export default function ChangerPin() {
   return (
     <div className="bg-roche-50 rounded-xl p-3.5 mb-4">
       <div className="flex items-center justify-between mb-2.5">
-        <p className="text-xs font-semibold text-roche-700 uppercase tracking-wide">Modifier le code d'accès enseignant</p>
+        <p className="text-xs font-semibold text-roche-700 uppercase tracking-wide">Modifier mon code d'accès</p>
         <button onClick={() => { setOuvert(false); reinitialiserChamps() }} className="p-1 rounded-full hover:bg-white text-roche-500">
           <X size={14} />
         </button>

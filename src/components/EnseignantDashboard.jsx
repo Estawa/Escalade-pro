@@ -2,14 +2,14 @@ import { useEffect, useMemo, useState } from 'react'
 import {
   Upload, ChevronDown, ChevronUp, KeyRound, UserX, Pencil, UserPlus,
   FolderPlus, FolderX, Check, X, ClipboardList, Mountain, Table, List, Eye,
-  Share2, Copy, ChevronRight
+  Share2, Copy, ChevronRight, Lock, Unlock, LogOut
 } from 'lucide-react'
 import Referentiel from './Referentiel.jsx'
 import ImportEleves from './ImportEleves.jsx'
 import EvaluationProf from './EvaluationProf.jsx'
 import SuiviEleveProf from './SuiviEleveProf.jsx'
 import VoiesConfig from './VoiesConfig.jsx'
-import ChangerPin from './ChangerPin.jsx'
+import EspaceAcces from './EspaceAcces.jsx'
 import GrilleSuiviVoies from './GrilleSuiviVoies.jsx'
 import DetailCellule from './DetailCellule.jsx'
 import TableauPerformanceProf from './TableauPerformanceProf.jsx'
@@ -69,8 +69,72 @@ function PartagerApp() {
   )
 }
 
-export default function EnseignantDashboard({ videos, onSaveVideo, onRemovePhase, onAddPhoto, onRemovePhoto, referentielConfig, onEditItem, onAddItem, onRemoveItem }) {
-  const [onglet, setOnglet] = useState('referentiel') // referentiel | voies | suivi
+// Verrou d'édition du Référentiel : redemande le code admin avant d'autoriser toute
+// modification (textes, photos, vidéos), pour éviter un effacement ou une modification par
+// erreur. Se reverrouille automatiquement en quittant l'onglet ou l'espace enseignant.
+function VerrouReferentiel({ pinAdmin, deverrouille, onDeverrouiller, onVerrouiller }) {
+  const [pin, setPin] = useState('')
+  const [erreur, setErreur] = useState(false)
+
+  if (deverrouille) {
+    return (
+      <div className="flex items-center justify-between bg-[#eef6ee] border border-[#cfe6cf] rounded-xl px-3.5 py-2.5 mb-4">
+        <div className="flex items-center gap-2 text-sm text-[#3a6b3a]">
+          <Unlock size={15} /> Édition déverrouillée
+        </div>
+        <button
+          onClick={onVerrouiller}
+          className="flex items-center gap-1.5 text-xs font-medium text-[#3a6b3a] border border-[#cfe6cf] rounded-full px-2.5 py-1 hover:bg-white"
+        >
+          <Lock size={12} /> Verrouiller
+        </button>
+      </div>
+    )
+  }
+
+  function valider(e) {
+    e.preventDefault()
+    if (pin === pinAdmin) {
+      setPin('')
+      setErreur(false)
+      onDeverrouiller()
+    } else {
+      setErreur(true)
+      setPin('')
+    }
+  }
+
+  return (
+    <form onSubmit={valider} className="flex items-center gap-2 bg-roche-50 border border-roche-200 rounded-xl px-3.5 py-2.5 mb-4 flex-wrap">
+      <div className="flex items-center gap-2 text-sm text-roche-700 mr-1">
+        <Lock size={15} /> Édition verrouillée
+      </div>
+      <input
+        type="password"
+        inputMode="numeric"
+        value={pin}
+        onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))}
+        placeholder="Code pour déverrouiller"
+        maxLength={6}
+        className={`rounded-lg border px-3 py-1.5 text-sm focus:outline-none w-44 ${erreur ? 'border-alerte' : 'border-roche-200 focus:ring-2 focus:ring-roche-500'}`}
+      />
+      <button type="submit" className="flex items-center gap-1.5 bg-roche-800 hover:bg-roche-700 text-white text-xs font-medium px-3 py-1.5 rounded-lg transition">
+        <Unlock size={12} /> Déverrouiller
+      </button>
+      {erreur && <p className="text-alerte text-xs w-full">Code incorrect.</p>}
+    </form>
+  )
+}
+
+export default function EnseignantDashboard({
+  role, nomCollegue, onDeconnexionEnseignant,
+  videos, onSaveVideo, onRemovePhase, onAddPhoto, onRemovePhoto,
+  referentielConfig, onEditItem, onAddItem, onRemoveItem,
+  accesConfig, onChangerPinAdmin, onAjouterCollegue, onSupprimerCollegue
+}) {
+  const estAdmin = role === 'admin'
+  const [onglet, setOnglet] = useState('referentiel') // referentiel | voies | suivi | acces
+  const [editionReferentielDeverrouillee, setEditionReferentielDeverrouillee] = useState(false)
   const [importOuvert, setImportOuvert] = useState(false)
   const [rosterVersion, setRosterVersion] = useState(0)
   const [classeSelectionnee, setClasseSelectionnee] = useState(null)
@@ -101,6 +165,11 @@ export default function EnseignantDashboard({ videos, onSaveVideo, onRemovePhase
     loadAllObservations().then(setObservationsParEleve).catch(() => {})
     loadVoies().then(setVoies).catch(() => {})
   }, [])
+
+  // Reverrouille automatiquement l'édition du Référentiel dès qu'on quitte cet onglet.
+  useEffect(() => {
+    if (onglet !== 'referentiel') setEditionReferentielDeverrouillee(false)
+  }, [onglet])
 
   const classes = useMemo(() => storage.getClasses(), [rosterVersion])
   const classeActive = classeSelectionnee !== null ? classeSelectionnee : classes.length > 0 ? classes[0] : null
@@ -220,17 +289,26 @@ export default function EnseignantDashboard({ videos, onSaveVideo, onRemovePhase
   return (
     <div className="max-w-3xl mx-auto px-4 py-6">
       <div className="flex items-center justify-between mb-2 flex-wrap gap-2">
-        <h2 className="font-display text-2xl text-roche-900">Espace enseignant</h2>
-        <ChangerPin />
+        <div>
+          <h2 className="font-display text-2xl text-roche-900">Espace enseignant</h2>
+          {!estAdmin && nomCollegue && <p className="text-xs text-roche-500 mt-0.5">Connecté en tant que {nomCollegue}</p>}
+        </div>
+        <button
+          onClick={onDeconnexionEnseignant}
+          className="flex items-center gap-1.5 text-xs font-medium text-roche-600 hover:text-roche-900"
+        >
+          <LogOut size={13} /> Se déconnecter
+        </button>
       </div>
 
       <PartagerApp />
 
-      <div className="flex gap-1.5 mb-6 bg-roche-50 rounded-full p-1 w-fit">
+      <div className="flex gap-1.5 mb-6 bg-roche-50 rounded-full p-1 w-fit flex-wrap">
         {[
           { id: 'referentiel', label: 'Référentiel' },
           { id: 'voies', label: 'Voies' },
-          { id: 'suivi', label: 'Élèves & suivi' }
+          { id: 'suivi', label: 'Élèves & suivi' },
+          ...(estAdmin ? [{ id: 'acces', label: 'Accès' }] : [])
         ].map((o) => (
           <button
             key={o.id}
@@ -243,17 +321,38 @@ export default function EnseignantDashboard({ videos, onSaveVideo, onRemovePhase
       </div>
 
       {onglet === 'referentiel' && (
-        <Referentiel
-          videos={videos}
-          modeProf
-          onSaveVideo={onSaveVideo}
-          onRemovePhase={onRemovePhase}
-          onAddPhoto={onAddPhoto}
-          onRemovePhoto={onRemovePhoto}
-          referentielConfig={referentielConfig}
-          onEditItem={onEditItem}
-          onAddItem={onAddItem}
-          onRemoveItem={onRemoveItem}
+        <>
+          {estAdmin ? (
+            <VerrouReferentiel
+              pinAdmin={accesConfig.pinAdmin}
+              deverrouille={editionReferentielDeverrouillee}
+              onDeverrouiller={() => setEditionReferentielDeverrouillee(true)}
+              onVerrouiller={() => setEditionReferentielDeverrouillee(false)}
+            />
+          ) : (
+            <p className="text-xs text-roche-500 mb-4">Consultation seule — seul l'administrateur peut modifier le Référentiel.</p>
+          )}
+          <Referentiel
+            videos={videos}
+            modeProf={estAdmin && editionReferentielDeverrouillee}
+            onSaveVideo={onSaveVideo}
+            onRemovePhase={onRemovePhase}
+            onAddPhoto={onAddPhoto}
+            onRemovePhoto={onRemovePhoto}
+            referentielConfig={referentielConfig}
+            onEditItem={onEditItem}
+            onAddItem={onAddItem}
+            onRemoveItem={onRemoveItem}
+          />
+        </>
+      )}
+
+      {onglet === 'acces' && estAdmin && (
+        <EspaceAcces
+          accesConfig={accesConfig}
+          onChangerPinAdmin={onChangerPinAdmin}
+          onAjouterCollegue={onAjouterCollegue}
+          onSupprimerCollegue={onSupprimerCollegue}
         />
       )}
 
