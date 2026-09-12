@@ -171,7 +171,7 @@ const ACCES_DOC_ID = "config";
 // Firebase), le code déjà en vigueur localement sur l'appareil de l'administrateur, pour ne
 // pas le bloquer hors de son propre code d'accès actuel.
 export function accesParDefaut(pinAdminParDefaut) {
-  return { pinAdmin: pinAdminParDefaut || "4242", nomAdmin: "Christophe Guilhem", collegues: [] };
+  return { pinAdmin: pinAdminParDefaut || "4242", nomAdmin: "Mr Guilhem", collegues: [] };
 }
 
 export async function loadAccesConfig(pinAdminParDefaut) {
@@ -180,7 +180,7 @@ export async function loadAccesConfig(pinAdminParDefaut) {
     const d = snap.data();
     return {
       pinAdmin: d.pinAdmin || pinAdminParDefaut || "4242",
-      nomAdmin: d.nomAdmin || "Christophe Guilhem",
+      nomAdmin: d.nomAdmin || "Mr Guilhem",
       collegues: Array.isArray(d.collegues) ? d.collegues : [],
     };
   }
