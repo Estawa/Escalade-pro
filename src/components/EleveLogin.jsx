@@ -192,21 +192,26 @@ export default function EleveLogin({ accesConfig, onConnecte }) {
           <div className="w-16 h-16 rounded-2xl bg-roche-800 flex items-center justify-center mb-4">
             <Mountain className="text-roche-200" size={30} />
           </div>
-          <h2 className="font-display text-2xl text-roche-900">Bienvenue</h2>
-          <p className="text-roche-600 text-sm mt-1">Choisis ton professeur d'EPS pour commencer.</p>
+          <h2 className="font-display text-2xl text-roche-900">Qui es-tu ?</h2>
+          <p className="text-roche-600 text-sm mt-1">Pour que ton professeur puisse suivre ta progression.</p>
         </div>
         {erreur && <p className="text-alerte text-sm text-center mb-4">{erreur}</p>}
-        <div className="space-y-2.5">
-          {professeurs.map((p) => (
-            <button
-              key={p.id}
-              onClick={() => choisirProfesseur(p.id)}
-              className="w-full text-left bg-white border-2 border-roche-100 hover:border-roche-500 rounded-xl px-4 py-3.5 font-medium text-roche-900 transition active:scale-[0.99]"
-            >
-              {p.nom}
-            </button>
-          ))}
+        <div className="mb-8">
+          <label className="block text-sm font-medium text-roche-800 mb-1">Ton professeur d'EPS</label>
+          <select
+            defaultValue=""
+            onChange={(e) => { if (e.target.value) choisirProfesseur(e.target.value) }}
+            className="w-full bg-white border-2 border-roche-100 focus:border-roche-500 rounded-xl px-4 py-3.5 font-medium text-roche-900 transition focus:outline-none"
+          >
+            <option value="" disabled>Sélectionne ton professeur...</option>
+            {professeurs.map((p) => (
+              <option key={p.id} value={p.id}>{p.nom}</option>
+            ))}
+          </select>
         </div>
+        <p className="text-[11px] text-roche-400 text-center px-2">
+          Tes réalisations sont enregistrées de façon anonyme (par numéro) pour ton suivi et ta notation de cycle — ton nom n'est jamais visible des autres élèves.
+        </p>
       </div>
     )
   }
@@ -272,7 +277,7 @@ export default function EleveLogin({ accesConfig, onConnecte }) {
           <div className="w-16 h-16 rounded-2xl bg-roche-800 flex items-center justify-center mb-4">
             <Mountain className="text-roche-200" size={30} />
           </div>
-          <h2 className="font-display text-2xl text-roche-900">Bienvenue</h2>
+          <h2 className="font-display text-2xl text-roche-900">Qui es-tu ?</h2>
           <p className="text-roche-600 text-sm mt-1">Choisis ta classe pour commencer.</p>
         </div>
         <div className="grid grid-cols-2 gap-2.5">
@@ -286,6 +291,9 @@ export default function EleveLogin({ accesConfig, onConnecte }) {
             </button>
           ))}
         </div>
+        <p className="text-[11px] text-roche-400 text-center px-2 mt-8">
+          Tes réalisations sont enregistrées de façon anonyme (par numéro) pour ton suivi et ta notation de cycle — ton nom n'est jamais visible des autres élèves.
+        </p>
       </div>
     )
   }
