@@ -2,6 +2,15 @@ ESCALADE PRO — JOURNAL DES TRANSFORMATIONS
 By C. Guilhem
 ======================================
 
+v3.7.1 — Correctif : écran d'identification vraiment aligné sur le modèle Muscu Pro
+--------------------------------------
+- Suppression du bandeau du haut (titre/version/bouton Enseignant) sur l'écran de démarrage et
+  sur l'écran d'identification élève : il n'y a plus que le contenu, comme sur Muscu Pro.
+- Le lien "Tu es professeur ? Connexion ici" est désormais aussi présent directement sur l'écran
+  d'identification (à côté du bloc de partage), pas seulement sur l'écran de démarrage.
+- Écran "aucune classe importée" (saisie libre nom/prénom/classe) harmonisé : titre "Qui es-tu ?"
+  et mention d'anonymisation, qui manquaient sur ce cas particulier.
+
 v3.7.0 — Parcours d'entrée uniformisé (standard commun à toutes les applis)
 --------------------------------------
 - Nouvel écran de démarrage à l'ouverture de l'appli : icône + nom de l'appli, bouton
