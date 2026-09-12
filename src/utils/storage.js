@@ -2,7 +2,9 @@ const KEYS = {
   ELEVE_ACTIF_ID: 'esc_eleve_actif_id',
   ROSTER: 'esc_roster_v1',
   PIN_OK: 'esc_pin_ok',
-  PIN_ENSEIGNANT: 'esc_pin_enseignant'
+  PIN_ENSEIGNANT: 'esc_pin_enseignant',
+  ROLE_ENSEIGNANT: 'esc_role_enseignant',
+  COLLEGUE_NOM: 'esc_collegue_nom'
 }
 
 const PIN_ENSEIGNANT_DEFAUT = '4242'
@@ -167,9 +169,22 @@ export const storage = {
   getPinOk: () => read(KEYS.PIN_OK, false),
   setPinOk: (val) => write(KEYS.PIN_OK, val),
 
-  // --- Code d'accès enseignant (modifiable, sinon valeur par défaut) ---
+  // --- Ancien code d'accès enseignant local, conservé uniquement comme valeur de départ lors
+  // de la toute première migration vers le code d'accès administrateur partagé (Firebase). ---
   getPinEnseignant: () => read(KEYS.PIN_ENSEIGNANT, PIN_ENSEIGNANT_DEFAUT),
-  setPinEnseignant: (pin) => write(KEYS.PIN_ENSEIGNANT, pin)
+  setPinEnseignant: (pin) => write(KEYS.PIN_ENSEIGNANT, pin),
+
+  // --- Rôle de la session enseignant en cours sur cet appareil : 'admin' (Christophe, seul à
+  // pouvoir modifier le Référentiel) ou 'collegue' (accès complet sauf édition du Référentiel).
+  getRoleEnseignant: () => read(KEYS.ROLE_ENSEIGNANT, null),
+  setRoleEnseignant: (role) => write(KEYS.ROLE_ENSEIGNANT, role),
+  getCollegueNom: () => read(KEYS.COLLEGUE_NOM, null),
+  setCollegueNom: (nom) => write(KEYS.COLLEGUE_NOM, nom),
+  clearSessionEnseignant: () => {
+    localStorage.removeItem(KEYS.PIN_OK)
+    localStorage.removeItem(KEYS.ROLE_ENSEIGNANT)
+    localStorage.removeItem(KEYS.COLLEGUE_NOM)
+  }
 }
 
 // Conservé pour compatibilité : valeur par défaut avant toute modification par l'enseignant.
