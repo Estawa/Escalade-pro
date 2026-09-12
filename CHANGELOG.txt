@@ -2,6 +2,17 @@ ESCALADE PRO — JOURNAL DES TRANSFORMATIONS
 By C. Guilhem
 ======================================
 
+v3.7.0 — Parcours d'entrée uniformisé (standard commun à toutes les applis)
+--------------------------------------
+- Nouvel écran de démarrage à l'ouverture de l'appli : icône + nom de l'appli, bouton
+  "Commencer" et accès discret "Tu es professeur ? Connexion ici".
+- Écran "Qui es-tu ?" : le choix du professeur d'EPS se fait désormais dans un menu déroulant
+  (au lieu d'une liste de boutons plein écran), pour aller plus vite sans avoir à scroller.
+- Ajout de la mention d'anonymisation (par numéro, nom jamais visible des autres élèves) au bas
+  de l'écran d'identification élève.
+- Écran "Connexion professeur" repensé : bloc de partage de l'appli en haut, sélection du nom
+  en menu déroulant (admin + collègues) au lieu du seul code, lien de retour "← Je suis élève".
+
 v3.6.0 — Bases élèves/suivi isolées par enseignant, Vue globale, réinitialisation de PIN
 --------------------------------------
 - Chaque enseignant (admin comme collègue) a désormais sa propre base d'élèves et de suivi
