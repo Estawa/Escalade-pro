@@ -2,6 +2,32 @@ ESCALADE PRO — JOURNAL DES TRANSFORMATIONS
 By C. Guilhem
 ======================================
 
+v3.5.0 — Accès administrateur/collègues, verrou d'édition et médias agrandis
+--------------------------------------
+- Nouveau système d'accès partagé (Firebase, donc valable sur tous les
+  appareils, pas seulement le tien) : ton code reste l'unique clé qui donne
+  accès à la MODIFICATION du Référentiel. Tu peux désormais ajouter des
+  collègues depuis un nouvel onglet "Accès" (visible uniquement pour toi) :
+  chacun reçoit un code PIN personnel que tu choisis et lui transmets ;
+  avec ce code il accède à l'espace enseignant (classes, suivi, voies,
+  évaluations) mais voit le Référentiel en lecture seule, sans aucun bouton
+  de modification. Tu peux retirer l'accès d'un collègue à tout moment.
+  "Modifier mon code d'accès" a été déplacé dans cet onglet "Accès".
+- Nouveau verrou d'édition dans l'onglet "Référentiel" (pour toi
+  uniquement) : même en étant connecté à l'espace enseignant, il faut
+  ressaisir ton code pour déverrouiller la modification des encarts,
+  textes, photos et vidéos — protection contre un effacement ou une
+  modification par erreur. Le verrou se referme automatiquement dès que tu
+  quittes l'onglet Référentiel ou l'espace enseignant.
+- Un bouton "Se déconnecter" a été ajouté dans l'espace enseignant.
+- Les photos et vidéos du Référentiel (démonstration, phases, images)
+  sont désormais cliquables aussi bien côté élève que côté prof : elles
+  s'ouvrent en plein écran (agrandies) directement dans l'appli au lieu
+  d'ouvrir un nouvel onglet. Les liens YouTube, Vimeo et Google Drive sont
+  intégrés directement ; les autres formats vidéo (mp4, webm...) sont lus
+  avec le lecteur du téléphone ; en dernier recours, un bouton permet
+  d'ouvrir le lien dans un nouvel onglet.
+
 v3.4.0 — Référentiel entièrement modifiable
 --------------------------------------
 - Dans l'espace enseignant, onglet "Référentiel" : chaque encart (titre et

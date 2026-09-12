@@ -18,7 +18,7 @@ dans `src/firebase.js` — rien à compléter ici. Le référentiel (vidéos) et
 stockés localement sur l'appareil (comme dans Course de Durée Pro).
 
 ⚠️ Vérifie que les règles de sécurité Firestore (Console Firebase → Firestore
-Database → Règles, **pas** Realtime Database) autorisent bien les quatre
+Database → Règles, **pas** Realtime Database) autorisent bien les sept
 collections utilisées par l'application :
 
 ```
@@ -29,6 +29,9 @@ service cloud.firestore {
     match /escalade_evaluations/{doc} { allow read, write: if true; }
     match /escalade_config/{doc} { allow read, write: if true; }
     match /escalade_passages/{doc} { allow read, write: if true; }
+    match /escalade_referentiel/{doc} { allow read, write: if true; }
+    match /escalade_observations/{doc} { allow read, write: if true; }
+    match /escalade_acces/{doc} { allow read, write: if true; }
   }
 }
 ```
@@ -36,8 +39,11 @@ service cloud.firestore {
 (Des règles ouvertes comme ci-dessus conviennent pour un usage en classe sans
 donnée sensible ; resserre-les si besoin.)
 
-Code d'accès enseignant par défaut : **4242**. Modifiable directement depuis
-l'application (bouton "Modifier le code d'accès" en haut de l'espace enseignant).
+Code d'accès administrateur : **8484** par défaut (ou celui déjà en vigueur
+sur ton appareil au moment de la mise à jour). Modifiable depuis l'onglet
+"Accès" de l'espace enseignant, qui permet aussi d'ajouter ou retirer des
+collègues (chacun avec son propre code, sans accès à la modification du
+Référentiel).
 
 ⚠️ Le contenu pédagogique (`src/data.js`) est une base à vérifier et compléter avant
 utilisation avec les élèves, notamment le nœud du pendu.
