@@ -2,6 +2,20 @@ ESCALADE PRO — JOURNAL DES TRANSFORMATIONS
 By C. Guilhem
 ======================================
 
+v3.4.0 — Référentiel entièrement modifiable
+--------------------------------------
+- Dans l'espace enseignant, onglet "Référentiel" : chaque encart (titre et
+  texte) est désormais modifiable via un bouton "Modifier le texte" ;
+  la mise à jour apparaît aussitôt sur la fiche des élèves (contenu
+  commun aux deux vues).
+- Possibilité d'ajouter une ou plusieurs images à un encart, en plus de la
+  vidéo qui existait déjà (bouton "+ Ajouter une image" ; les images sont
+  automatiquement redimensionnées/compressées avant enregistrement).
+- Possibilité d'ajouter de nouveaux encarts à un module existant
+  (bouton "+ Ajouter un encart" en fin de chaque module) et de supprimer
+  un encart (bouton "✕" en haut à droite de chaque encart, avec
+  confirmation).
+
 v3.3.0 — 4e sous-colonne de couleurs et difficulté jusqu'à 8
 --------------------------------------
 - Chaque voie peut désormais avoir une difficulté définie pour 4 couleurs
