@@ -78,7 +78,7 @@ function LienEnseignant({ onAccesEnseignant }) {
 // révéler les champs suivants au fur et à mesure.
 export default function EleveLogin({ accesConfig, onConnecte, onAccesEnseignant }) {
   const professeurs = useMemo(() => {
-    const liste = [{ id: 'admin', nom: accesConfig?.nomAdmin || 'Christophe Guilhem' }]
+    const liste = [{ id: 'admin', nom: accesConfig?.nomAdmin || 'Mr Guilhem' }]
     ;(accesConfig?.collegues || []).forEach((c) => liste.push({ id: c.id, nom: c.nom }))
     return liste
   }, [accesConfig])

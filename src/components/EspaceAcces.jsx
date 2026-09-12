@@ -59,21 +59,27 @@ function ReinitialiserPinCollegue({ collegue, autresPins, onReinitialiser }) {
 }
 
 // Nom affiché de l'administrateur (Christophe), modifiable : c'est ce nom que les élèves
-// voient dans la liste des professeurs à la connexion.
+// voient dans la liste des professeurs à la connexion. Civilité (Mr/Mme) + nom séparés à la
+// saisie, mais stockés comme un seul texte ("Mr Guilhem") pour rester compatible.
 function NomAdmin({ nomAdmin, onChanger }) {
   const [edition, setEdition] = useState(false)
-  const [valeur, setValeur] = useState(nomAdmin || '')
+  const decompose = (valeur) => {
+    const m = /^(Mr|Mme)\s+(.*)$/.exec(valeur || '')
+    return m ? { civilite: m[1], nom: m[2] } : { civilite: 'Mr', nom: valeur || '' }
+  }
+  const [civilite, setCivilite] = useState(() => decompose(nomAdmin).civilite)
+  const [valeur, setValeur] = useState(() => decompose(nomAdmin).nom)
 
   function valider(e) {
     e.preventDefault()
     if (!valeur.trim()) return
-    onChanger(valeur.trim())
+    onChanger(`${civilite} ${valeur.trim()}`)
     setEdition(false)
   }
 
   if (!edition) {
     return (
-      <button onClick={() => { setValeur(nomAdmin || ''); setEdition(true) }} className="flex items-center gap-1.5 text-xs text-roche-600 hover:text-roche-900 mb-2.5">
+      <button onClick={() => { const d = decompose(nomAdmin); setCivilite(d.civilite); setValeur(d.nom); setEdition(true) }} className="flex items-center gap-1.5 text-xs text-roche-600 hover:text-roche-900 mb-2.5">
         <Pencil size={12} /> Nom affiché aux élèves : <span className="font-medium text-roche-900">{nomAdmin}</span>
       </button>
     )
@@ -81,6 +87,14 @@ function NomAdmin({ nomAdmin, onChanger }) {
 
   return (
     <form onSubmit={valider} className="flex items-center gap-2 mb-2.5">
+      <select
+        value={civilite}
+        onChange={(e) => setCivilite(e.target.value)}
+        className="rounded-lg border border-roche-200 px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-roche-500"
+      >
+        <option value="Mr">Mr</option>
+        <option value="Mme">Mme</option>
+      </select>
       <input
         value={valeur}
         onChange={(e) => setValeur(e.target.value)}
@@ -97,6 +111,7 @@ function NomAdmin({ nomAdmin, onChanger }) {
 // onChangerPinAdmin(nouveauPin), onChangerNomAdmin(nom), onAjouterCollegue(nom, pin),
 // onSupprimerCollegue(id), onReinitialiserPinCollegue(id, nouveauPin)
 export default function EspaceAcces({ accesConfig, onChangerPinAdmin, onChangerNomAdmin, onAjouterCollegue, onSupprimerCollegue, onReinitialiserPinCollegue }) {
+  const [civilite, setCivilite] = useState('Mr')
   const [nom, setNom] = useState('')
   const [pin, setPin] = useState('')
   const [erreur, setErreur] = useState('')
@@ -120,7 +135,7 @@ export default function EspaceAcces({ accesConfig, onChangerPinAdmin, onChangerN
       setErreur('Ce code est déjà utilisé, choisis-en un autre.')
       return
     }
-    onAjouterCollegue(nom.trim(), pin)
+    onAjouterCollegue(`${civilite} ${nom.trim()}`, pin)
     setNom('')
     setPin('')
   }
@@ -152,6 +167,14 @@ export default function EspaceAcces({ accesConfig, onChangerPinAdmin, onChangerN
       </p>
 
       <form onSubmit={ajouter} className="flex flex-col sm:flex-row gap-2 mb-4">
+        <select
+          value={civilite}
+          onChange={(e) => setCivilite(e.target.value)}
+          className="rounded-lg border border-roche-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-roche-500"
+        >
+          <option value="Mr">Mr</option>
+          <option value="Mme">Mme</option>
+        </select>
         <input
           value={nom}
           onChange={(e) => setNom(e.target.value)}

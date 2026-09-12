@@ -57,7 +57,7 @@ function PartagerApp() {
 // teacherId = 'admin' pour Christophe, ou l'id du collègue (= sa base élèves/suivi isolée).
 export default function EnseignantPin({ accesConfig, onValide, onRetourEleve }) {
   const noms = useMemo(() => {
-    const liste = [{ id: 'admin', nom: accesConfig?.nomAdmin || 'Christophe Guilhem' }]
+    const liste = [{ id: 'admin', nom: accesConfig?.nomAdmin || 'Mr Guilhem' }]
     ;(accesConfig?.collegues || []).forEach((c) => liste.push({ id: c.id, nom: c.nom }))
     return liste
   }, [accesConfig])
