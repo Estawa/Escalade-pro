@@ -2,6 +2,16 @@ ESCALADE PRO — JOURNAL DES TRANSFORMATIONS
 By C. Guilhem
 ======================================
 
+v3.8.0 — Identification élève refondue en une seule page (modèle Muscu Pro)
+--------------------------------------
+- L'écran de démarrage bascule désormais automatiquement vers l'identification élève après un
+  bref affichage de l'icône, sans aucun clic à faire.
+- Tout se passe sur UNE SEULE page : partage de l'appli, accès "Connexion prof", puis
+  professeur (menu déroulant), classe, nom et code PIN s'enchaînent verticalement au fur et à
+  mesure des choix, sans changement d'écran.
+- Fin des étapes séparées "Choisis ton professeur" / "Choisis ta classe" / "Trouve ton nom" /
+  écran PIN dédié : tout est regroupé et visible progressivement sur la même page.
+
 v3.7.1 — Correctif : écran d'identification vraiment aligné sur le modèle Muscu Pro
 --------------------------------------
 - Suppression du bandeau du haut (titre/version/bouton Enseignant) sur l'écran de démarrage et
