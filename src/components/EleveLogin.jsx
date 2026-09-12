@@ -56,10 +56,22 @@ function PartagerApp() {
   )
 }
 
+function LienEnseignant({ onAccesEnseignant }) {
+  if (!onAccesEnseignant) return null
+  return (
+    <button
+      onClick={onAccesEnseignant}
+      className="w-full max-w-md mx-auto mb-8 block text-center border border-roche-200 rounded-xl py-3 text-sm text-roche-700"
+    >
+      Tu es professeur ? <span className="font-medium">Connexion ici →</span>
+    </button>
+  )
+}
+
 // accesConfig: { pinAdmin, nomAdmin, collegues: [{id, nom, pin}] } — sert uniquement à
 // construire la liste des professeurs parmi lesquels l'élève choisit le sien (aucun code
 // n'est demandé ici : ce n'est pas une connexion enseignant).
-export default function EleveLogin({ accesConfig, onConnecte }) {
+export default function EleveLogin({ accesConfig, onConnecte, onAccesEnseignant }) {
   const professeurs = useMemo(() => {
     const liste = [{ id: 'admin', nom: accesConfig?.nomAdmin || 'Christophe Guilhem' }]
     ;(accesConfig?.collegues || []).forEach((c) => liste.push({ id: c.id, nom: c.nom }))
@@ -188,6 +200,7 @@ export default function EleveLogin({ accesConfig, onConnecte }) {
     return (
       <div className="max-w-md mx-auto px-6 py-14">
         <PartagerApp />
+        <LienEnseignant onAccesEnseignant={onAccesEnseignant} />
         <div className="flex flex-col items-center text-center mb-8">
           <div className="w-16 h-16 rounded-2xl bg-roche-800 flex items-center justify-center mb-4">
             <Mountain className="text-roche-200" size={30} />
@@ -228,6 +241,7 @@ export default function EleveLogin({ accesConfig, onConnecte }) {
     return (
       <div className="max-w-md mx-auto px-6 py-14">
         <PartagerApp />
+        {unSeulProf && <LienEnseignant onAccesEnseignant={onAccesEnseignant} />}
         {!unSeulProf && (
           <button onClick={() => setEtape('professeur')} className="flex items-center gap-1 text-sm text-roche-600 mb-6">
             <ChevronLeft size={16} /> Changer de professeur
@@ -237,7 +251,7 @@ export default function EleveLogin({ accesConfig, onConnecte }) {
           <div className="w-16 h-16 rounded-2xl bg-roche-800 flex items-center justify-center mb-4">
             <Mountain className="text-roche-200" size={30} />
           </div>
-          <h2 className="font-display text-2xl text-roche-900">Bienvenue</h2>
+          <h2 className="font-display text-2xl text-roche-900">Qui es-tu ?</h2>
           <p className="text-roche-600 text-sm mt-1">
             Aucune classe importée pour l'instant : identifie-toi pour créer ta fiche.
           </p>
@@ -257,9 +271,12 @@ export default function EleveLogin({ accesConfig, onConnecte }) {
           </div>
           {erreur && <p className="text-alerte text-sm">{erreur}</p>}
           <button type="submit" className="w-full bg-roche-800 hover:bg-roche-700 text-white font-medium py-3.5 rounded-xl transition active:scale-[0.98]">
-            Continuer
+            Commencer
           </button>
         </form>
+        <p className="text-[11px] text-roche-400 text-center px-2 mt-6">
+          Tes réalisations sont enregistrées de façon anonyme (par numéro) pour ton suivi et ta notation de cycle — ton nom n'est jamais visible des autres élèves.
+        </p>
       </div>
     )
   }
@@ -268,6 +285,7 @@ export default function EleveLogin({ accesConfig, onConnecte }) {
     return (
       <div className="max-w-md mx-auto px-6 py-14">
         <PartagerApp />
+        {unSeulProf && <LienEnseignant onAccesEnseignant={onAccesEnseignant} />}
         {!unSeulProf && (
           <button onClick={() => setEtape('professeur')} className="flex items-center gap-1 text-sm text-roche-600 mb-6">
             <ChevronLeft size={16} /> Changer de professeur
