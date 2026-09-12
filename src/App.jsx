@@ -4,7 +4,8 @@ import EleveLogin from './components/EleveLogin.jsx'
 import EspaceEleve from './components/EspaceEleve.jsx'
 import EnseignantPin from './components/EnseignantPin.jsx'
 import EnseignantDashboard from './components/EnseignantDashboard.jsx'
-import { loadAllVideos, saveVideoForItem } from './firebase.js'
+import { loadAllVideos, saveVideoForItem, loadReferentielConfig, saveReferentielConfig, configReferentielParDefaut } from './firebase.js'
+import { fichierVersImageCompressee } from './utils/images.js'
 import { storage } from './utils/storage.js'
 
 export default function App() {
@@ -12,18 +13,22 @@ export default function App() {
   const [ecran, setEcran] = useState(() => (storage.getEleveActif() ? 'espace' : 'accueil'))
 
   const [videos, setVideos] = useState({})
+  const [referentielConfig, setReferentielConfig] = useState(configReferentielParDefaut())
   const [chargement, setChargement] = useState(true)
   const [erreur, setErreur] = useState(null)
 
   useEffect(() => {
-    loadAllVideos()
-      .then(setVideos)
+    Promise.all([loadAllVideos(), loadReferentielConfig()])
+      .then(([v, rc]) => {
+        setVideos(v)
+        setReferentielConfig(rc)
+      })
       .catch((e) => setErreur('Connexion à la sauvegarde impossible : ' + e.message))
       .finally(() => setChargement(false))
   }, [])
 
   function saveVideo(key, field, value, idx) {
-    const cur = videos[key] || { demo: '', phases: [] }
+    const cur = videos[key] || { demo: '', phases: [], photos: [] }
     let next
     if (field === 'demo') next = { ...cur, demo: value }
     else {
@@ -37,10 +42,61 @@ export default function App() {
   }
 
   function removePhase(key, idx) {
-    const cur = videos[key] || { demo: '', phases: [] }
+    const cur = videos[key] || { demo: '', phases: [], photos: [] }
     const next = { ...cur, phases: cur.phases.filter((_, i) => i !== idx) }
     setVideos((v) => ({ ...v, [key]: next }))
     saveVideoForItem(key, next).catch((e) => setErreur('Échec de la sauvegarde : ' + e.message))
+  }
+
+  async function addPhoto(key, fichier) {
+    const cur = videos[key] || { demo: '', phases: [], photos: [] }
+    try {
+      const dataUrl = await fichierVersImageCompressee(fichier)
+      const next = { ...cur, photos: [...(cur.photos || []), dataUrl] }
+      setVideos((v) => ({ ...v, [key]: next }))
+      await saveVideoForItem(key, next)
+    } catch (e) {
+      setErreur("Échec de l'ajout de l'image : " + e.message)
+    }
+  }
+
+  function removePhoto(key, idx) {
+    const cur = videos[key] || { demo: '', phases: [], photos: [] }
+    const next = { ...cur, photos: (cur.photos || []).filter((_, i) => i !== idx) }
+    setVideos((v) => ({ ...v, [key]: next }))
+    saveVideoForItem(key, next).catch((e) => setErreur('Échec de la sauvegarde : ' + e.message))
+  }
+
+  // --- Édition du contenu du Référentiel (titres/textes, ajout/suppression d'encarts) ---
+  function persisterReferentiel(next) {
+    setReferentielConfig(next)
+    saveReferentielConfig(next).catch((e) => setErreur('Échec de la sauvegarde : ' + e.message))
+  }
+
+  function editItem(moduleId, itemId, patch, estPersonnalise) {
+    if (estPersonnalise) {
+      const liste = (referentielConfig.extra[moduleId] || []).map((it) => (it.id === itemId ? { ...it, ...patch } : it))
+      persisterReferentiel({ ...referentielConfig, extra: { ...referentielConfig.extra, [moduleId]: liste } })
+    } else {
+      const key = `${moduleId}-${itemId}`
+      persisterReferentiel({ ...referentielConfig, overrides: { ...referentielConfig.overrides, [key]: { ...referentielConfig.overrides[key], ...patch } } })
+    }
+  }
+
+  function addItem(moduleId, { titre, texte }) {
+    const id = `perso_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`
+    const liste = [...(referentielConfig.extra[moduleId] || []), { id, titre, texte }]
+    persisterReferentiel({ ...referentielConfig, extra: { ...referentielConfig.extra, [moduleId]: liste } })
+  }
+
+  function removeItem(moduleId, itemId, estPersonnalise) {
+    if (estPersonnalise) {
+      const liste = (referentielConfig.extra[moduleId] || []).filter((it) => it.id !== itemId)
+      persisterReferentiel({ ...referentielConfig, extra: { ...referentielConfig.extra, [moduleId]: liste } })
+    } else {
+      const key = `${moduleId}-${itemId}`
+      persisterReferentiel({ ...referentielConfig, supprimes: [...referentielConfig.supprimes, key] })
+    }
   }
 
   function handleConnecte(e) {
@@ -99,13 +155,23 @@ export default function App() {
       {ecran === 'accueil' && <EleveLogin onConnecte={handleConnecte} />}
 
       {ecran === 'espace' && eleve && (
-        <EspaceEleve eleve={eleve} videos={videos} onDeconnexion={handleDeconnexion} />
+        <EspaceEleve eleve={eleve} videos={videos} referentielConfig={referentielConfig} onDeconnexion={handleDeconnexion} />
       )}
 
       {ecran === 'enseignantPin' && <EnseignantPin onValide={handlePinValide} />}
 
       {ecran === 'enseignant' && (
-        <EnseignantDashboard videos={videos} onSaveVideo={saveVideo} onRemovePhase={removePhase} />
+        <EnseignantDashboard
+          videos={videos}
+          onSaveVideo={saveVideo}
+          onRemovePhase={removePhase}
+          onAddPhoto={addPhoto}
+          onRemovePhoto={removePhoto}
+          referentielConfig={referentielConfig}
+          onEditItem={editItem}
+          onAddItem={addItem}
+          onRemoveItem={removeItem}
+        />
       )}
     </div>
   )

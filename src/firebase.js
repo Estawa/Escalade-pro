@@ -129,6 +129,34 @@ export async function loadAllPassages() {
   return result;
 }
 
+// --- Configuration éditable du contenu du Référentiel : titres/textes modifiés par rapport
+// au contenu de base (data.js), encarts ajoutés par le professeur, et encarts masqués/supprimés.
+// Un seul document car modifié occasionnellement et de taille modeste (texte uniquement, les
+// photos et vidéos restent dans escalade_videos, déjà par item). ---
+const REFERENTIEL_COLLECTION = "escalade_referentiel";
+const REFERENTIEL_DOC_ID = "config";
+
+export function configReferentielParDefaut() {
+  return { overrides: {}, extra: {}, supprimes: [] };
+}
+
+export async function loadReferentielConfig() {
+  const snap = await getDoc(doc(db, REFERENTIEL_COLLECTION, REFERENTIEL_DOC_ID));
+  if (snap.exists()) {
+    const d = snap.data();
+    return {
+      overrides: d.overrides || {},
+      extra: d.extra || {},
+      supprimes: d.supprimes || [],
+    };
+  }
+  return configReferentielParDefaut();
+}
+
+export async function saveReferentielConfig(config) {
+  await setDoc(doc(db, REFERENTIEL_COLLECTION, REFERENTIEL_DOC_ID), config);
+}
+
 // --- Observations du prof : ce que l'enseignant a vu et jugé lui-même (grimpeur ET/OU assureur),
 // à la demande de l'élève quand il est prêt à être évalué sur une voie. Distinctes des "passages"
 // déclarés par l'élève : seules ces observations donnent lieu à la note de performance de cycle. ---
