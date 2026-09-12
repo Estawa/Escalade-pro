@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import Header from './components/Header.jsx'
+import Demarrage from './components/Demarrage.jsx'
 import EleveLogin from './components/EleveLogin.jsx'
 import EspaceEleve from './components/EspaceEleve.jsx'
 import EnseignantPin from './components/EnseignantPin.jsx'
@@ -21,7 +22,7 @@ export default function App() {
   const pointeurEleve = storage.getEleveActifPointeur()
   const [eleve, setEleve] = useState(null)
   const [chargementEleve, setChargementEleve] = useState(!!pointeurEleve)
-  const [ecran, setEcran] = useState(pointeurEleve ? 'espace' : 'accueil')
+  const [ecran, setEcran] = useState(pointeurEleve ? 'espace' : 'demarrage')
   const [role, setRole] = useState(() => storage.getRoleEnseignant())
   const [nomCollegue, setNomCollegue] = useState(() => storage.getCollegueNom())
   const [teacherIdEnseignant, setTeacherIdEnseignant] = useState(() => storage.getTeacherIdEnseignant())
@@ -207,26 +208,34 @@ export default function App() {
   }
 
   function handleRetour() {
-    setEcran(eleve ? 'espace' : 'accueil')
+    setEcran(eleve ? 'espace' : 'demarrage')
+  }
+
+  function handleRetourEleve() {
+    setEcran('accueil')
   }
 
   const titres = {
+    demarrage: '',
     accueil: 'Identification',
     espace: 'Escalade Pro',
     enseignantPin: 'Espace enseignant',
     enseignant: 'Espace enseignant'
   }
 
-  const peutRevenir = ['enseignantPin', 'enseignant'].includes(ecran)
+  const peutRevenir = ['accueil', 'enseignantPin', 'enseignant'].includes(ecran)
+  const afficherHeader = ecran !== 'demarrage'
 
   return (
     <div className="min-h-screen bg-white font-body">
-      <Header
-        title={titres[ecran]}
-        onBack={peutRevenir ? handleRetour : null}
-        onEnseignant={handleAccesEnseignant}
-        showEnseignant={ecran !== 'enseignant' && ecran !== 'enseignantPin'}
-      />
+      {afficherHeader && (
+        <Header
+          title={titres[ecran]}
+          onBack={peutRevenir ? handleRetour : null}
+          onEnseignant={handleAccesEnseignant}
+          showEnseignant={ecran !== 'enseignant' && ecran !== 'enseignantPin'}
+        />
+      )}
 
       {erreur && (
         <div className="max-w-3xl mx-auto px-4 pt-4">
@@ -239,13 +248,19 @@ export default function App() {
         </div>
       )}
 
+      {ecran === 'demarrage' && !chargementEleve && (
+        <Demarrage onCommencer={() => setEcran('accueil')} onAccesEnseignant={handleAccesEnseignant} />
+      )}
+
       {ecran === 'accueil' && !chargementEleve && <EleveLogin accesConfig={accesConfig} onConnecte={handleConnecte} />}
 
       {ecran === 'espace' && eleve && (
         <EspaceEleve eleve={eleve} videos={videos} referentielConfig={referentielConfig} onDeconnexion={handleDeconnexion} />
       )}
 
-      {ecran === 'enseignantPin' && <EnseignantPin accesConfig={accesConfig} onValide={handlePinValide} />}
+      {ecran === 'enseignantPin' && (
+        <EnseignantPin accesConfig={accesConfig} onValide={handlePinValide} onRetourEleve={handleRetourEleve} />
+      )}
 
       {ecran === 'enseignant' && (
         <EnseignantDashboard
