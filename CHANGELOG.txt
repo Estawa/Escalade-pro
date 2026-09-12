@@ -2,6 +2,25 @@ ESCALADE PRO — JOURNAL DES TRANSFORMATIONS
 By C. Guilhem
 ======================================
 
+v3.6.0 — Bases élèves/suivi isolées par enseignant, Vue globale, réinitialisation de PIN
+--------------------------------------
+- Chaque enseignant (admin comme collègue) a désormais sa propre base d'élèves et de suivi
+  (classes, passages, observations, évaluations), totalement isolée de celle des autres : un
+  collègue ajouté ne voit plus les élèves d'un autre, ni ceux de l'administrateur.
+- Le roster (classes + élèves) est désormais stocké sur Firebase (et non plus uniquement sur
+  l'appareil), un document par enseignant, synchronisé sur tous ses appareils.
+- Connexion élève : ajout d'une étape "Choisis ton professeur d'EPS" avant le choix de la
+  classe (sautée automatiquement s'il n'y a qu'un seul professeur), pour que deux enseignants
+  puissent utiliser le même nom de classe sans conflit.
+- Nouvel onglet "Vue globale" (administrateur uniquement) : accès complet (lecture/écriture)
+  à l'espace élèves/suivi de n'importe quel collègue via un sélecteur déroulant, distinct de
+  l'onglet "Mes classes" (toujours le propre espace de l'administrateur) pour ne pas les
+  confondre.
+- Onglet Accès : bouton "Réinitialiser le PIN" pour chaque collègue (nouveau code choisi par
+  l'administrateur, sans perte des élèves ni du suivi déjà enregistrés par ce collègue), et nom
+  de l'administrateur modifiable (c'est ce nom que les élèves voient dans la liste des
+  professeurs à la connexion).
+
 v3.5.0 — Accès administrateur/collègues, verrou d'édition et médias agrandis
 --------------------------------------
 - Nouveau système d'accès partagé (Firebase, donc valable sur tous les
