@@ -69,7 +69,7 @@ function PartagerApp() {
   )
 }
 
-export default function EnseignantDashboard({ videos, onSaveVideo, onRemovePhase }) {
+export default function EnseignantDashboard({ videos, onSaveVideo, onRemovePhase, onAddPhoto, onRemovePhoto, referentielConfig, onEditItem, onAddItem, onRemoveItem }) {
   const [onglet, setOnglet] = useState('referentiel') // referentiel | voies | suivi
   const [importOuvert, setImportOuvert] = useState(false)
   const [rosterVersion, setRosterVersion] = useState(0)
@@ -243,7 +243,18 @@ export default function EnseignantDashboard({ videos, onSaveVideo, onRemovePhase
       </div>
 
       {onglet === 'referentiel' && (
-        <Referentiel videos={videos} modeProf onSaveVideo={onSaveVideo} onRemovePhase={onRemovePhase} />
+        <Referentiel
+          videos={videos}
+          modeProf
+          onSaveVideo={onSaveVideo}
+          onRemovePhase={onRemovePhase}
+          onAddPhoto={onAddPhoto}
+          onRemovePhoto={onRemovePhoto}
+          referentielConfig={referentielConfig}
+          onEditItem={onEditItem}
+          onAddItem={onAddItem}
+          onRemoveItem={onRemoveItem}
+        />
       )}
 
       {onglet === 'voies' && <VoiesConfig />}

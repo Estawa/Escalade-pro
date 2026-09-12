@@ -5,7 +5,7 @@ import EvaluationEleve from './EvaluationEleve.jsx'
 import SuiviCycle from './SuiviCycle.jsx'
 import { loadAllEvaluations, cleEvaluation, loadVoies, voiesParDefaut, loadPassagesEleve } from '../firebase.js'
 
-export default function EspaceEleve({ eleve, videos, onDeconnexion }) {
+export default function EspaceEleve({ eleve, videos, referentielConfig, onDeconnexion }) {
   const [ongletPrincipal, setOngletPrincipal] = useState('connaissance') // connaissance | suivi
   const [sousOnglet, setSousOnglet] = useState('referentiel') // referentiel | evaluation
   const [evaluationExistante, setEvaluationExistante] = useState(null)
@@ -52,7 +52,7 @@ export default function EspaceEleve({ eleve, videos, onDeconnexion }) {
             <button style={sousOnglet === 'referentiel' ? styles.ongletBtnActive : styles.ongletBtn} onClick={() => setSousOnglet('referentiel')}>Référentiel</button>
             <button style={sousOnglet === 'evaluation' ? styles.ongletBtnActive : styles.ongletBtn} onClick={() => setSousOnglet('evaluation')}>Ma auto-évaluation</button>
           </div>
-          {sousOnglet === 'referentiel' && <Referentiel videos={videos} modeProf={false} />}
+          {sousOnglet === 'referentiel' && <Referentiel videos={videos} referentielConfig={referentielConfig} modeProf={false} />}
           {sousOnglet === 'evaluation' && <EvaluationEleve eleve={eleve} evaluationExistante={evaluationExistante} />}
         </div>
       )}
