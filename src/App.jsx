@@ -4,24 +4,32 @@ import EleveLogin from './components/EleveLogin.jsx'
 import EspaceEleve from './components/EspaceEleve.jsx'
 import EnseignantPin from './components/EnseignantPin.jsx'
 import EnseignantDashboard from './components/EnseignantDashboard.jsx'
-import { loadAllVideos, saveVideoForItem, loadReferentielConfig, saveReferentielConfig, configReferentielParDefaut } from './firebase.js'
+import {
+  loadAllVideos, saveVideoForItem,
+  loadReferentielConfig, saveReferentielConfig, configReferentielParDefaut,
+  loadAccesConfig, saveAccesConfig, accesParDefaut
+} from './firebase.js'
 import { fichierVersImageCompressee } from './utils/images.js'
 import { storage } from './utils/storage.js'
 
 export default function App() {
   const [eleve, setEleve] = useState(() => storage.getEleveActif())
   const [ecran, setEcran] = useState(() => (storage.getEleveActif() ? 'espace' : 'accueil'))
+  const [role, setRole] = useState(() => storage.getRoleEnseignant())
+  const [nomCollegue, setNomCollegue] = useState(() => storage.getCollegueNom())
 
   const [videos, setVideos] = useState({})
   const [referentielConfig, setReferentielConfig] = useState(configReferentielParDefaut())
+  const [accesConfig, setAccesConfig] = useState(() => accesParDefaut(storage.getPinEnseignant()))
   const [chargement, setChargement] = useState(true)
   const [erreur, setErreur] = useState(null)
 
   useEffect(() => {
-    Promise.all([loadAllVideos(), loadReferentielConfig()])
-      .then(([v, rc]) => {
+    Promise.all([loadAllVideos(), loadReferentielConfig(), loadAccesConfig(storage.getPinEnseignant())])
+      .then(([v, rc, ac]) => {
         setVideos(v)
         setReferentielConfig(rc)
+        setAccesConfig(ac)
       })
       .catch((e) => setErreur('Connexion à la sauvegarde impossible : ' + e.message))
       .finally(() => setChargement(false))
@@ -99,6 +107,25 @@ export default function App() {
     }
   }
 
+  // --- Accès enseignant : code admin + collègues (Firebase, partagé entre tous les appareils) ---
+  function persisterAcces(next) {
+    setAccesConfig(next)
+    saveAccesConfig(next).catch((e) => setErreur('Échec de la sauvegarde : ' + e.message))
+  }
+
+  function changerPinAdmin(nouveauPin) {
+    persisterAcces({ ...accesConfig, pinAdmin: nouveauPin })
+  }
+
+  function ajouterCollegue(nom, pin) {
+    const id = crypto.randomUUID ? crypto.randomUUID() : `c_${Date.now()}_${Math.random().toString(36).slice(2)}`
+    persisterAcces({ ...accesConfig, collegues: [...(accesConfig.collegues || []), { id, nom, pin }] })
+  }
+
+  function supprimerCollegue(id) {
+    persisterAcces({ ...accesConfig, collegues: (accesConfig.collegues || []).filter((c) => c.id !== id) })
+  }
+
   function handleConnecte(e) {
     setEleve(e)
     setEcran('espace')
@@ -111,12 +138,26 @@ export default function App() {
   }
 
   function handleAccesEnseignant() {
-    setEcran(storage.getPinOk() ? 'enseignant' : 'enseignantPin')
+    // storage.getRoleEnseignant() est requis en plus de getPinOk() pour forcer une nouvelle
+    // saisie du code après cette mise à jour (anciennes sessions sans rôle enregistré).
+    const dejaConnecte = storage.getPinOk() && storage.getRoleEnseignant()
+    setEcran(dejaConnecte ? 'enseignant' : 'enseignantPin')
   }
 
-  function handlePinValide() {
+  function handlePinValide({ role: roleValide, nomCollegue: nom }) {
     storage.setPinOk(true)
+    storage.setRoleEnseignant(roleValide)
+    storage.setCollegueNom(roleValide === 'collegue' ? nom : null)
+    setRole(roleValide)
+    setNomCollegue(roleValide === 'collegue' ? nom : null)
     setEcran('enseignant')
+  }
+
+  function handleDeconnexionEnseignant() {
+    storage.clearSessionEnseignant()
+    setRole(null)
+    setNomCollegue(null)
+    setEcran(eleve ? 'espace' : 'accueil')
   }
 
   function handleRetour() {
@@ -158,10 +199,13 @@ export default function App() {
         <EspaceEleve eleve={eleve} videos={videos} referentielConfig={referentielConfig} onDeconnexion={handleDeconnexion} />
       )}
 
-      {ecran === 'enseignantPin' && <EnseignantPin onValide={handlePinValide} />}
+      {ecran === 'enseignantPin' && <EnseignantPin accesConfig={accesConfig} onValide={handlePinValide} />}
 
       {ecran === 'enseignant' && (
         <EnseignantDashboard
+          role={role}
+          nomCollegue={nomCollegue}
+          onDeconnexionEnseignant={handleDeconnexionEnseignant}
           videos={videos}
           onSaveVideo={saveVideo}
           onRemovePhase={removePhase}
@@ -171,6 +215,10 @@ export default function App() {
           onEditItem={editItem}
           onAddItem={addItem}
           onRemoveItem={removeItem}
+          accesConfig={accesConfig}
+          onChangerPinAdmin={changerPinAdmin}
+          onAjouterCollegue={ajouterCollegue}
+          onSupprimerCollegue={supprimerCollegue}
         />
       )}
     </div>

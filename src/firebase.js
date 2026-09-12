@@ -157,6 +157,36 @@ export async function saveReferentielConfig(config) {
   await setDoc(doc(db, REFERENTIEL_COLLECTION, REFERENTIEL_DOC_ID), config);
 }
 
+// --- Accès à l'espace enseignant : code de l'administrateur (Christophe, seul à pouvoir
+// modifier le Référentiel) et liste des collègues autorisés à utiliser l'appli, chacun avec
+// son propre code PIN attribué par l'administrateur. Stocké sur Firebase (et non en local)
+// pour que le même code fonctionne quel que soit le téléphone/l'ordinateur utilisé. ---
+const ACCES_COLLECTION = "escalade_acces";
+const ACCES_DOC_ID = "config";
+
+// pinAdminParDefaut : reprend, à la toute première utilisation (avant création du document
+// Firebase), le code déjà en vigueur localement sur l'appareil de l'administrateur, pour ne
+// pas le bloquer hors de son propre code d'accès actuel.
+export function accesParDefaut(pinAdminParDefaut) {
+  return { pinAdmin: pinAdminParDefaut || "4242", collegues: [] };
+}
+
+export async function loadAccesConfig(pinAdminParDefaut) {
+  const snap = await getDoc(doc(db, ACCES_COLLECTION, ACCES_DOC_ID));
+  if (snap.exists()) {
+    const d = snap.data();
+    return {
+      pinAdmin: d.pinAdmin || pinAdminParDefaut || "4242",
+      collegues: Array.isArray(d.collegues) ? d.collegues : [],
+    };
+  }
+  return accesParDefaut(pinAdminParDefaut);
+}
+
+export async function saveAccesConfig(config) {
+  await setDoc(doc(db, ACCES_COLLECTION, ACCES_DOC_ID), config);
+}
+
 // --- Observations du prof : ce que l'enseignant a vu et jugé lui-même (grimpeur ET/OU assureur),
 // à la demande de l'élève quand il est prêt à être évalué sur une voie. Distinctes des "passages"
 // déclarés par l'élève : seules ces observations donnent lieu à la note de performance de cycle. ---
