@@ -2,6 +2,13 @@ ESCALADE PRO — JOURNAL DES TRANSFORMATIONS
 By C. Guilhem
 ======================================
 
+v3.9.0 — Civilité Mr/Mme sur les noms affichés (admin et collègues)
+--------------------------------------
+- Onglet Accès : le nom affiché aux élèves (le tien comme celui de chaque collègue ajouté) se
+  compose désormais d'une civilité (Mr/Mme) choisie dans un menu déroulant + du nom, au lieu
+  d'un texte libre entier (ex. "Mr Guilhem" au lieu de "Christophe Guilhem").
+- Valeur par défaut mise à jour en conséquence ("Mr Guilhem").
+
 v3.8.0 — Identification élève refondue en une seule page (modèle Muscu Pro)
 --------------------------------------
 - L'écran de démarrage bascule désormais automatiquement vers l'identification élève après un
