@@ -224,7 +224,7 @@ export default function App() {
   }
 
   const peutRevenir = ['accueil', 'enseignantPin', 'enseignant'].includes(ecran)
-  const afficherHeader = ecran !== 'demarrage'
+  const afficherHeader = ecran !== 'demarrage' && ecran !== 'accueil'
 
   return (
     <div className="min-h-screen bg-white font-body">
@@ -252,7 +252,9 @@ export default function App() {
         <Demarrage onCommencer={() => setEcran('accueil')} onAccesEnseignant={handleAccesEnseignant} />
       )}
 
-      {ecran === 'accueil' && !chargementEleve && <EleveLogin accesConfig={accesConfig} onConnecte={handleConnecte} />}
+      {ecran === 'accueil' && !chargementEleve && (
+        <EleveLogin accesConfig={accesConfig} onConnecte={handleConnecte} onAccesEnseignant={handleAccesEnseignant} />
+      )}
 
       {ecran === 'espace' && eleve && (
         <EspaceEleve eleve={eleve} videos={videos} referentielConfig={referentielConfig} onDeconnexion={handleDeconnexion} />
