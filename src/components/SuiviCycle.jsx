@@ -5,7 +5,6 @@ import GrilleSuiviVoies from './GrilleSuiviVoies.jsx'
 import DetailCellule from './DetailCellule.jsx'
 import { formatDifficulte, parseDifficulte } from '../utils/difficulte.js'
 import { ajouterPassage, supprimerPassage, modifierPassage } from '../firebase.js'
-import { storage } from '../utils/storage.js'
 
 const MODES = ['Moulinette', 'Moulitête', 'Tête']
 const ROLES = ['Grimpeur', 'Assureur']
@@ -14,7 +13,9 @@ function idPassage() {
   return crypto.randomUUID ? crypto.randomUUID() : `p_${Date.now()}_${Math.random().toString(36).slice(2)}`
 }
 
-export default function SuiviCycle({ eleve, voies, passages, setPassages, chargement, erreurInitiale }) {
+// camarades : élèves de la même classe (chez le même professeur), pour désigner qui a été
+// assuré (rôle Assureur uniquement) — chargés par EspaceEleve depuis le roster de son professeur.
+export default function SuiviCycle({ eleve, voies, passages, setPassages, camarades = [], chargement, erreurInitiale }) {
   const [erreur, setErreur] = useState('')
   const [confirmation, setConfirmation] = useState('')
   const [detail, setDetail] = useState(null)
@@ -33,16 +34,6 @@ export default function SuiviCycle({ eleve, voies, passages, setPassages, charge
   const [cordeLovee, setCordeLovee] = useState(false)
   const [partenaireId, setPartenaireId] = useState('')
   const [enregistrement, setEnregistrement] = useState(false)
-
-  // Camarades de la même classe, pour désigner qui a été assuré (rôle Assureur uniquement).
-  // Le roster élèves est en localStorage sur cet appareil, accessible directement.
-  const camarades = useMemo(() => {
-    try {
-      return storage.getElevesClasse(eleve.classe).filter((e) => e.id !== eleve.id)
-    } catch {
-      return []
-    }
-  }, [eleve])
 
   const voieActive = useMemo(() => voies.find((v) => v.numero === Number(numeroVoie)), [voies, numeroVoie])
   const couleurActive = voieActive ? voieActive.couleurs[nbCouleurs] : null

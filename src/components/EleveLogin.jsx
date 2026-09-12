@@ -1,6 +1,7 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Mountain, ChevronLeft, Lock, Share2, Copy, Check, ChevronRight } from 'lucide-react'
-import { storage } from '../utils/storage'
+import { rosterOps } from '../utils/rosterOps.js'
+import { loadRosterTeacher, saveRosterTeacher } from '../firebase.js'
 
 function PartagerApp() {
   const [ouvert, setOuvert] = useState(false)
@@ -55,18 +56,56 @@ function PartagerApp() {
   )
 }
 
-export default function EleveLogin({ onConnecte }) {
-  const classes = useMemo(() => storage.getClasses(), [])
-  const [etape, setEtape] = useState(classes.length > 0 ? 'classe' : 'saisieLibre')
+// accesConfig: { pinAdmin, nomAdmin, collegues: [{id, nom, pin}] } — sert uniquement à
+// construire la liste des professeurs parmi lesquels l'élève choisit le sien (aucun code
+// n'est demandé ici : ce n'est pas une connexion enseignant).
+export default function EleveLogin({ accesConfig, onConnecte }) {
+  const professeurs = useMemo(() => {
+    const liste = [{ id: 'admin', nom: accesConfig?.nomAdmin || 'Christophe Guilhem' }]
+    ;(accesConfig?.collegues || []).forEach((c) => liste.push({ id: c.id, nom: c.nom }))
+    return liste
+  }, [accesConfig])
+
+  // Si un seul professeur existe dans l'établissement (cas courant : pas encore de collègue
+  // ajouté), on saute directement l'étape de choix pour ne pas alourdir la connexion élève.
+  const unSeulProf = professeurs.length === 1
+  const [etape, setEtape] = useState(unSeulProf ? 'chargementRoster' : 'professeur')
+  const [teacherId, setTeacherId] = useState(unSeulProf ? professeurs[0].id : null)
+  const [roster, setRoster] = useState(null)
   const [classe, setClasse] = useState('')
   const [eleveId, setEleveId] = useState('')
   const [pin, setPin] = useState('')
   const [pinConfirm, setPinConfirm] = useState('')
   const [erreur, setErreur] = useState('')
 
-  const eleves = classe ? storage.getElevesClasse(classe) : []
-  const eleveSelectionne = eleveId ? storage.trouverEleve(classe, eleveId) : null
+  // Charge le roster du professeur choisi (ou de l'unique professeur) dès qu'on le connaît.
+  useEffect(() => {
+    if (!teacherId) return
+    let annule = false
+    setEtape('chargementRoster')
+    loadRosterTeacher(teacherId)
+      .then((r) => {
+        if (annule) return
+        setRoster(r)
+        setEtape(rosterOps.getClasses(r).length > 0 ? 'classe' : 'saisieLibre')
+      })
+      .catch(() => {
+        if (annule) return
+        setErreur('Chargement des classes impossible. Vérifie ta connexion et réessaie.')
+        setEtape('professeur')
+      })
+    return () => { annule = true }
+  }, [teacherId])
+
+  const classes = roster ? rosterOps.getClasses(roster) : []
+  const eleves = roster && classe ? rosterOps.getElevesClasse(roster, classe) : []
+  const eleveSelectionne = roster && eleveId ? rosterOps.trouverEleve(roster, classe, eleveId) : null
   const premierePinEnCours = eleveSelectionne && !eleveSelectionne.pin
+
+  function choisirProfesseur(id) {
+    setTeacherId(id)
+    setErreur('')
+  }
 
   function choisirClasse(c) {
     setClasse(c)
@@ -82,13 +121,12 @@ export default function EleveLogin({ onConnecte }) {
     setEtape('pin')
   }
 
-  function connecterAvec(id) {
-    const eleve = storage.trouverEleve(classe, id)
-    storage.setEleveActifId(id)
-    onConnecte({ id: eleve.id, nom: eleve.nom, prenom: eleve.prenom, classe })
+  function connecterAvec(id, classeConnexion = classe) {
+    const eleveTrouve = rosterOps.trouverEleve(roster, classeConnexion, id)
+    onConnecte({ id: eleveTrouve.id, nom: eleveTrouve.nom, prenom: eleveTrouve.prenom, classe: classeConnexion, teacherId })
   }
 
-  function validerPin(e) {
+  async function validerPin(e) {
     e.preventDefault()
     if (premierePinEnCours) {
       if (!/^\d{4,6}$/.test(pin)) {
@@ -100,10 +138,17 @@ export default function EleveLogin({ onConnecte }) {
         setPinConfirm('')
         return
       }
-      storage.definirPin(classe, eleveId, pin)
+      const next = rosterOps.definirPin(roster, classe, eleveId, pin)
+      setRoster(next)
+      try {
+        await saveRosterTeacher(teacherId, next)
+      } catch (e2) {
+        setErreur("Échec de l'enregistrement du code : " + e2.message)
+        return
+      }
       connecterAvec(eleveId)
     } else {
-      if (storage.verifierPin(classe, eleveId, pin)) {
+      if (rosterOps.verifierPin(roster, classe, eleveId, pin)) {
         connecterAvec(eleveId)
       } else {
         setErreur('Code incorrect.')
@@ -112,8 +157,8 @@ export default function EleveLogin({ onConnecte }) {
     }
   }
 
-  // --- Repli : saisie libre si aucune classe importée ---
-  function validerSaisieLibre(e) {
+  // --- Repli : saisie libre si aucune classe importée pour ce professeur ---
+  async function validerSaisieLibre(e) {
     e.preventDefault()
     const form = e.target
     const nom = form.nom.value.trim()
@@ -123,7 +168,14 @@ export default function EleveLogin({ onConnecte }) {
       setErreur('Renseigne ton nom, ton prénom et ta classe pour continuer.')
       return
     }
-    const eleve = storage.ajouterEleveManuel(classeSaisie, nom, prenom)
+    const { roster: next, eleve } = rosterOps.ajouterEleveManuel(roster || {}, classeSaisie, nom, prenom)
+    setRoster(next)
+    try {
+      await saveRosterTeacher(teacherId, next)
+    } catch (e2) {
+      setErreur("Échec de l'enregistrement : " + e2.message)
+      return
+    }
     setClasse(classeSaisie)
     setEleveId(eleve.id)
     setPin('')
@@ -132,10 +184,50 @@ export default function EleveLogin({ onConnecte }) {
     setEtape('pin')
   }
 
+  if (etape === 'professeur') {
+    return (
+      <div className="max-w-md mx-auto px-6 py-14">
+        <PartagerApp />
+        <div className="flex flex-col items-center text-center mb-8">
+          <div className="w-16 h-16 rounded-2xl bg-roche-800 flex items-center justify-center mb-4">
+            <Mountain className="text-roche-200" size={30} />
+          </div>
+          <h2 className="font-display text-2xl text-roche-900">Bienvenue</h2>
+          <p className="text-roche-600 text-sm mt-1">Choisis ton professeur d'EPS pour commencer.</p>
+        </div>
+        {erreur && <p className="text-alerte text-sm text-center mb-4">{erreur}</p>}
+        <div className="space-y-2.5">
+          {professeurs.map((p) => (
+            <button
+              key={p.id}
+              onClick={() => choisirProfesseur(p.id)}
+              className="w-full text-left bg-white border-2 border-roche-100 hover:border-roche-500 rounded-xl px-4 py-3.5 font-medium text-roche-900 transition active:scale-[0.99]"
+            >
+              {p.nom}
+            </button>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  if (etape === 'chargementRoster') {
+    return (
+      <div className="max-w-md mx-auto px-6 py-20 text-center">
+        <p className="text-sm text-roche-500">Chargement des classes...</p>
+      </div>
+    )
+  }
+
   if (etape === 'saisieLibre') {
     return (
       <div className="max-w-md mx-auto px-6 py-14">
         <PartagerApp />
+        {!unSeulProf && (
+          <button onClick={() => setEtape('professeur')} className="flex items-center gap-1 text-sm text-roche-600 mb-6">
+            <ChevronLeft size={16} /> Changer de professeur
+          </button>
+        )}
         <div className="flex flex-col items-center text-center mb-8">
           <div className="w-16 h-16 rounded-2xl bg-roche-800 flex items-center justify-center mb-4">
             <Mountain className="text-roche-200" size={30} />
@@ -171,6 +263,11 @@ export default function EleveLogin({ onConnecte }) {
     return (
       <div className="max-w-md mx-auto px-6 py-14">
         <PartagerApp />
+        {!unSeulProf && (
+          <button onClick={() => setEtape('professeur')} className="flex items-center gap-1 text-sm text-roche-600 mb-6">
+            <ChevronLeft size={16} /> Changer de professeur
+          </button>
+        )}
         <div className="flex flex-col items-center text-center mb-8">
           <div className="w-16 h-16 rounded-2xl bg-roche-800 flex items-center justify-center mb-4">
             <Mountain className="text-roche-200" size={30} />

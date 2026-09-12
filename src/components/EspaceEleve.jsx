@@ -3,7 +3,8 @@ import { styles } from '../styles.js'
 import Referentiel from './Referentiel.jsx'
 import EvaluationEleve from './EvaluationEleve.jsx'
 import SuiviCycle from './SuiviCycle.jsx'
-import { loadAllEvaluations, cleEvaluation, loadVoies, voiesParDefaut, loadPassagesEleve } from '../firebase.js'
+import { loadAllEvaluations, cleEvaluation, loadVoies, voiesParDefaut, loadPassagesEleve, loadRosterTeacher } from '../firebase.js'
+import { rosterOps } from '../utils/rosterOps.js'
 
 export default function EspaceEleve({ eleve, videos, referentielConfig, onDeconnexion }) {
   const [ongletPrincipal, setOngletPrincipal] = useState('connaissance') // connaissance | suivi
@@ -14,6 +15,7 @@ export default function EspaceEleve({ eleve, videos, referentielConfig, onDeconn
   // puis conservés en mémoire pour que changer d'onglet n'entraîne plus de rechargement.
   const [voies, setVoies] = useState(voiesParDefaut())
   const [passages, setPassages] = useState([])
+  const [camarades, setCamarades] = useState([])
   const [chargementCycle, setChargementCycle] = useState(true)
   const [erreurCycle, setErreurCycle] = useState('')
 
@@ -23,10 +25,11 @@ export default function EspaceEleve({ eleve, videos, referentielConfig, onDeconn
       .catch(() => {})
 
     setChargementCycle(true)
-    Promise.all([loadVoies(), loadPassagesEleve(eleve)])
-      .then(([v, p]) => {
+    Promise.all([loadVoies(), loadPassagesEleve(eleve), loadRosterTeacher(eleve.teacherId)])
+      .then(([v, p, roster]) => {
         setVoies(v)
         setPassages(p)
+        setCamarades(rosterOps.getElevesClasse(roster, eleve.classe).filter((e) => e.id !== eleve.id))
       })
       .catch((e) => setErreurCycle('Chargement du suivi de cycle impossible : ' + e.message))
       .finally(() => setChargementCycle(false))
@@ -63,6 +66,7 @@ export default function EspaceEleve({ eleve, videos, referentielConfig, onDeconn
           voies={voies}
           passages={passages}
           setPassages={setPassages}
+          camarades={camarades}
           chargement={chargementCycle}
           erreurInitiale={erreurCycle}
         />

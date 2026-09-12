@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react'
 import { Upload, AlertTriangle, X, ChevronLeft } from 'lucide-react'
 import { parserLignesBrutes, deviverRole, separerNomPrenom, normaliserSexe, normaliser } from '../utils/eleves'
-import { storage } from '../utils/storage'
+import { rosterOps } from '../utils/rosterOps'
 
 const CIBLES_IMPORT = [
   { id: 'nomComplet', label: 'Nom + Prénom (colonne unique)' },
@@ -11,7 +11,9 @@ const CIBLES_IMPORT = [
   { id: 'sexe', label: 'Sexe' }
 ]
 
-export default function ImportEleves({ onImporte, onFermer }) {
+// roster : roster brut de l'espace enseignant actuellement affiché (Mes classes ou Vue globale).
+// onImporte(nextRoster) : le parent persiste le nouveau roster (Firebase) et ferme la modale.
+export default function ImportEleves({ roster, onImporte, onFermer }) {
   const [etape, setEtape] = useState('choix') // choix | apercuBrut | mapping | apercu
   const [nomFichier, setNomFichier] = useState('')
   const [enTetes, setEnTetes] = useState([])
@@ -81,7 +83,7 @@ export default function ImportEleves({ onImporte, onFermer }) {
     const classe = (classeBrute || classeParDefaut.trim()).toUpperCase()
     const sexe = iSexe !== undefined ? normaliserSexe(ligne[iSexe]) : ''
     const existant = classe
-      ? storage.getElevesClasse(classe).find(
+      ? rosterOps.getElevesClasse(roster, classe).find(
           (e) => normaliser(e.nom) === normaliser(nom) && normaliser(e.prenom) === normaliser(prenom)
         )
       : null
@@ -105,8 +107,7 @@ export default function ImportEleves({ onImporte, onFermer }) {
       setErreur('Aucun élève sélectionné.')
       return
     }
-    storage.appliquerImportRoster(eleves, mode)
-    onImporte()
+    onImporte(rosterOps.appliquerImportRoster(roster, eleves, mode))
   }
 
   function recommencer() {

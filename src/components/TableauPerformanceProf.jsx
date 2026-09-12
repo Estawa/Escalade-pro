@@ -15,9 +15,10 @@ function idObservation() {
 
 // elevesDeLaClasse: roster brut (id, nom, prenom, sexe, equipe)
 // classeActive: nom de la classe
+// teacherId: enseignant auquel appartient cette classe (isole la clé de suivi des autres enseignants)
 // voies: config des 17 voies
 // observationsParEleve / setObservationsParEleve: état partagé, clé = cleEvaluation(eleveComplet)
-export default function TableauPerformanceProf({ elevesDeLaClasse, classeActive, voies, observationsParEleve, setObservationsParEleve }) {
+export default function TableauPerformanceProf({ elevesDeLaClasse, classeActive, teacherId, voies, observationsParEleve, setObservationsParEleve }) {
   const [numeroVoie, setNumeroVoie] = useState(1)
   const [nbCouleurs, setNbCouleurs] = useState(3)
   const [mode, setMode] = useState('Moulinette')
@@ -42,13 +43,13 @@ export default function TableauPerformanceProf({ elevesDeLaClasse, classeActive,
 
   const eleveComplet = (id) => {
     const e = elevesDeLaClasse.find((x) => x.id === id)
-    return e ? { id: e.id, nom: e.nom, prenom: e.prenom, classe: classeActive } : null
+    return e ? { id: e.id, nom: e.nom, prenom: e.prenom, classe: classeActive, teacherId } : null
   }
 
   const lignesTableau = useMemo(
     () =>
       elevesDeLaClasse.map((eleve) => {
-        const ec = { id: eleve.id, nom: eleve.nom, prenom: eleve.prenom, classe: classeActive }
+        const ec = { id: eleve.id, nom: eleve.nom, prenom: eleve.prenom, classe: classeActive, teacherId }
         return {
           key: eleve.id,
           titre: `${eleve.prenom} ${eleve.nom}`,
@@ -57,7 +58,7 @@ export default function TableauPerformanceProf({ elevesDeLaClasse, classeActive,
           passages: observationsParEleve[cleEvaluation(ec)] || []
         }
       }),
-    [elevesDeLaClasse, classeActive, observationsParEleve]
+    [elevesDeLaClasse, classeActive, teacherId, observationsParEleve]
   )
 
   async function enregistrerObservation(e) {
