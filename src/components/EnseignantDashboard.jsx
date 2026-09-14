@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import {
   Upload, ChevronDown, ChevronUp, KeyRound, UserX, Pencil, UserPlus,
   FolderPlus, FolderX, Check, X, ClipboardList, Mountain, Table, List, Eye,
-  Share2, Copy, ChevronRight, Lock, Unlock, LogOut, Users
+  Share2, Copy, ChevronRight, Lock, Unlock, LogOut, Users, ArrowRightLeft
 } from 'lucide-react'
 import Referentiel from './Referentiel.jsx'
 import ImportEleves from './ImportEleves.jsx'
@@ -169,6 +169,8 @@ export default function EnseignantDashboard({
   const [editPrenom, setEditPrenom] = useState('')
   const [editSexe, setEditSexe] = useState('')
   const [editEquipe, setEditEquipe] = useState('')
+  const [eleveEnDeplacement, setEleveEnDeplacement] = useState(null)
+  const [classeCibleDeplacement, setClasseCibleDeplacement] = useState('')
   const [ajoutEleveOuvert, setAjoutEleveOuvert] = useState(false)
   const [nouvelEleveNom, setNouvelEleveNom] = useState('')
   const [nouvelElevePrenom, setNouvelElevePrenom] = useState('')
@@ -314,6 +316,18 @@ export default function EnseignantDashboard({
   function reinitialiserPin(eleveId) {
     if (!eleveId || classeActive === null) return
     persisterRoster(rosterOps.reinitialiserPin(roster, classeActive, eleveId))
+  }
+
+  function ouvrirDeplacement(eleve) {
+    setEleveEnDeplacement(eleve.id)
+    setClasseCibleDeplacement('')
+  }
+
+  function deplacerEleve(eleveId) {
+    if (!classeCibleDeplacement.trim() || classeActive === null) return
+    persisterRoster(rosterOps.deplacerEleve(roster, classeActive, eleveId, classeCibleDeplacement))
+    setEleveEnDeplacement(null)
+    setClasseCibleDeplacement('')
   }
 
   function ouvrirEdition(eleve) {
@@ -688,6 +702,12 @@ export default function EnseignantDashboard({
                                         <KeyRound size={12} /> Réinitialiser le PIN
                                       </button>
                                       <button
+                                        onClick={() => (eleveEnDeplacement === eleve.id ? setEleveEnDeplacement(null) : ouvrirDeplacement(eleve))}
+                                        className="flex items-center gap-1 text-[11px] font-medium text-roche-700 border border-roche-200 rounded-full px-2.5 py-1 hover:bg-white"
+                                      >
+                                        <ArrowRightLeft size={12} /> Déplacer vers une autre classe
+                                      </button>
+                                      <button
                                         onClick={() => setPanneauOuvertPour(panneauOuvertPour?.id === eleve.id && panneauOuvertPour?.type === 'eval' ? null : { id: eleve.id, type: 'eval' })}
                                         className="flex items-center gap-1 text-[11px] font-medium text-roche-700 border border-roche-200 rounded-full px-2.5 py-1 hover:bg-white"
                                       >
@@ -706,6 +726,35 @@ export default function EnseignantDashboard({
                                         <UserX size={12} /> Retirer de la classe
                                       </button>
                                     </div>
+
+                                    {eleveEnDeplacement === eleve.id && (
+                                      <form
+                                        onSubmit={(e) => { e.preventDefault(); deplacerEleve(eleve.id) }}
+                                        className="flex flex-col sm:flex-row gap-2 mb-2 bg-white rounded-xl p-2.5"
+                                      >
+                                        <input
+                                          list="classes-disponibles-deplacement"
+                                          value={classeCibleDeplacement}
+                                          onChange={(e) => setClasseCibleDeplacement(e.target.value)}
+                                          placeholder="Classe de destination"
+                                          autoFocus
+                                          className="flex-1 rounded-lg border border-roche-200 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-roche-500"
+                                        />
+                                        <datalist id="classes-disponibles-deplacement">
+                                          {classes.filter((c) => c !== classeActive).map((c) => (
+                                            <option key={c} value={c} />
+                                          ))}
+                                        </datalist>
+                                        <div className="flex gap-1.5">
+                                          <button type="submit" disabled={!classeCibleDeplacement.trim()} className="p-1.5 rounded-full bg-roche-800 disabled:opacity-50 text-white hover:bg-roche-700">
+                                            <Check size={14} />
+                                          </button>
+                                          <button type="button" onClick={() => setEleveEnDeplacement(null)} className="p-1.5 rounded-full border border-roche-200 text-roche-600 hover:bg-roche-50">
+                                            <X size={14} />
+                                          </button>
+                                        </div>
+                                      </form>
+                                    )}
 
                                     {panneauOuvertPour?.id === eleve.id && panneauOuvertPour?.type === 'eval' && (
                                       <div className="bg-white rounded-xl p-3">

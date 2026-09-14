@@ -107,7 +107,15 @@ export default function ImportEleves({ roster, onImporte, onFermer }) {
       setErreur('Aucun élève sélectionné.')
       return
     }
-    onImporte(rosterOps.appliquerImportRoster(roster, eleves, mode))
+    const { roster: nextRoster, conflits } = rosterOps.appliquerImportRoster(roster, eleves, mode)
+    if (conflits.length > 0) {
+      alert(
+        `${conflits.length} élève(s) déjà connu(s) sous une autre classe n'ont pas été déplacés automatiquement (pour éviter tout doublon) :\n\n` +
+        conflits.map((c) => `${c.prenom} ${c.nom} : resté dans ${c.classeExistante} (ce fichier l'indiquait dans ${c.classeFichier})`).join('\n') +
+        `\n\nVérifie dans la fiche de l'élève s'il faut le déplacer manuellement.`
+      )
+    }
+    onImporte(nextRoster)
   }
 
   function recommencer() {
