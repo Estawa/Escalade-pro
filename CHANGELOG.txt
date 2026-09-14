@@ -2,6 +2,15 @@ ESCALADE PRO — JOURNAL DES TRANSFORMATIONS
 By C. Guilhem
 ======================================
 
+v3.10.0 — Anti-doublon d'import + déplacement d'élève entre classes
+--------------------------------------
+- Import CSV/Excel/ODS : un élève déjà connu sous une autre classe (ex. sa classe d'origine au
+  lieu du bon groupe classe) n'est plus dupliqué — il est reconnu partout dans le roster, pas
+  seulement dans la classe visée par le fichier. S'il est retrouvé sous une classe différente,
+  il reste où il est et un message récapitule qui est concerné, à corriger manuellement si besoin.
+- Nouveau bouton "Déplacer vers une autre classe" sur chaque élève (onglet Élèves) : change sa
+  classe en conservant son identifiant, donc son PIN et tout son suivi déjà enregistré.
+
 v3.9.0 — Civilité Mr/Mme sur les noms affichés (admin et collègues)
 --------------------------------------
 - Onglet Accès : le nom affiché aux élèves (le tien comme celui de chaque collègue ajouté) se
