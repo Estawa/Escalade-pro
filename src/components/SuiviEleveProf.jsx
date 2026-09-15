@@ -47,7 +47,7 @@ export default function SuiviEleveProf({ eleve, passages, observations = [], eva
         <p className="text-sm text-roche-800">
           {stats.total} passage{stats.total > 1 ? 's' : ''} enregistré{stats.total > 1 ? 's' : ''} · {stats.reussis} au sommet ·{' '}
           {stats.voiesDistinctes} voie{stats.voiesDistinctes > 1 ? 's' : ''} différente{stats.voiesDistinctes > 1 ? 's' : ''} ·{' '}
-          {stats.enGrimpeur} en grimpeur / {stats.enAssureur} en assureur
+          {stats.enGrimpeur} en grimpeur / {stats.enAssureur} en assureur / {stats.enConseiller} en conseiller
         </p>
         {stats.meilleureVoie && (
           <p className="text-xs text-roche-500 mt-1">
@@ -61,7 +61,7 @@ export default function SuiviEleveProf({ eleve, passages, observations = [], eva
         <p className="text-sm text-roche-800">
           {statsObs.total} observation{statsObs.total > 1 ? 's' : ''} · {statsObs.reussis} au sommet ·{' '}
           {statsObs.voiesDistinctes} voie{statsObs.voiesDistinctes > 1 ? 's' : ''} différente{statsObs.voiesDistinctes > 1 ? 's' : ''} ·{' '}
-          {statsObs.enGrimpeur} en grimpeur / {statsObs.enAssureur} en assureur
+          {statsObs.enGrimpeur} en grimpeur / {statsObs.enAssureur} en assureur / {statsObs.enConseiller} en conseiller
         </p>
         {statsObs.meilleureVoie && (
           <p className="text-xs text-roche-500 mt-1">

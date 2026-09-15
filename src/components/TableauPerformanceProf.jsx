@@ -4,7 +4,6 @@ import DifficulteSelect from './DifficulteSelect.jsx'
 import GrilleSuiviVoies from './GrilleSuiviVoies.jsx'
 import DetailCellule from './DetailCellule.jsx'
 import { formatDifficulte, parseDifficulte } from '../utils/difficulte.js'
-import { libelleRoleCourt } from '../utils/equipes.js'
 import { cleEvaluation, ajouterObservationEvenement, supprimerObservation } from '../firebase.js'
 
 const MODES = ['Moulinette', 'Moulitête', 'Tête']
@@ -28,6 +27,7 @@ export default function TableauPerformanceProf({ elevesDeLaClasse, classeActive,
   const [mousqueton, setMousqueton] = useState('')
   const [grimpeurId, setGrimpeurId] = useState('')
   const [assureurId, setAssureurId] = useState('')
+  const [conseillerId, setConseillerId] = useState('')
   const [qualiteAssurage, setQualiteAssurage] = useState('Correct')
   const [erreur, setErreur] = useState('')
   const [confirmation, setConfirmation] = useState('')
@@ -55,7 +55,6 @@ export default function TableauPerformanceProf({ elevesDeLaClasse, classeActive,
           key: eleve.id,
           titre: `${eleve.prenom} ${eleve.nom}`,
           equipe: eleve.equipe || '',
-          role: eleve.role || null,
           eleveComplet: ec,
           passages: observationsParEleve[cleEvaluation(ec)] || []
         }
@@ -76,13 +75,14 @@ export default function TableauPerformanceProf({ elevesDeLaClasse, classeActive,
       setErreur('Indique le numéro du dernier mousqueton passé avant d\'enregistrer.')
       return
     }
-    if (!grimpeurId && !assureurId) {
-      setErreur('Choisis au moins un grimpeur observé ou un assureur observé.')
+    if (!grimpeurId && !assureurId && !conseillerId) {
+      setErreur('Choisis au moins un grimpeur, un assureur ou un conseiller observé.')
       return
     }
 
     const grimpeurEleve = grimpeurId ? eleveComplet(grimpeurId) : null
     const assureurEleve = assureurId ? eleveComplet(assureurId) : null
+    const conseillerEleve = conseillerId ? eleveComplet(conseillerId) : null
     const evenementId = idObservation()
     const base = {
       date: Date.now(),
@@ -100,14 +100,18 @@ export default function TableauPerformanceProf({ elevesDeLaClasse, classeActive,
     const assureurObs = assureurEleve
       ? { ...base, id: idObservation(), role: 'Assureur', qualite: qualiteAssurage, partenaireId: grimpeurEleve?.id || null, partenaireNom: grimpeurEleve ? `${grimpeurEleve.prenom} ${grimpeurEleve.nom}` : null }
       : null
+    const conseillerObs = conseillerEleve
+      ? { ...base, id: idObservation(), role: 'Conseiller', partenaireId: grimpeurEleve?.id || null, partenaireNom: grimpeurEleve ? `${grimpeurEleve.prenom} ${grimpeurEleve.nom}` : null }
+      : null
 
     setEnregistrement(true)
     try {
-      const resultat = await ajouterObservationEvenement({ grimpeurEleve, grimpeurObs, assureurEleve, assureurObs })
+      const resultat = await ajouterObservationEvenement({ grimpeurEleve, grimpeurObs, assureurEleve, assureurObs, conseillerEleve, conseillerObs })
       setObservationsParEleve((m) => {
         const copie = { ...m }
         if (grimpeurEleve && resultat.grimpeur) copie[cleEvaluation(grimpeurEleve)] = resultat.grimpeur
         if (assureurEleve && resultat.assureur) copie[cleEvaluation(assureurEleve)] = resultat.assureur
+        if (conseillerEleve && resultat.conseiller) copie[cleEvaluation(conseillerEleve)] = resultat.conseiller
         return copie
       })
       setMousqueton('')
@@ -217,14 +221,14 @@ export default function TableauPerformanceProf({ elevesDeLaClasse, classeActive,
           <DifficulteSelect chiffre={difficulte.chiffre} lettre={difficulte.lettre} plus={difficulte.plus} onChange={setDifficulte} />
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1 border-t border-roche-200/60">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1 border-t border-roche-200/60">
           <div>
             <label className="block text-xs text-roche-600 mb-1">Grimpeur observé</label>
             <select value={grimpeurId} onChange={(e) => setGrimpeurId(e.target.value)} className="w-full rounded-lg border border-roche-200 px-2.5 py-2 text-sm bg-white">
               <option value="">— Non observé —</option>
               {elevesDeLaClasse.map((el) => (
-                <option key={el.id} value={el.id} disabled={el.id === assureurId}>
-                  {el.prenom} {el.nom}{el.role ? ` — ${libelleRoleCourt(el.role)}` : ''}
+                <option key={el.id} value={el.id} disabled={el.id === assureurId || el.id === conseillerId}>
+                  {el.prenom} {el.nom}{el.equipe ? ` — ${el.equipe}` : ''}
                 </option>
               ))}
             </select>
@@ -234,8 +238,8 @@ export default function TableauPerformanceProf({ elevesDeLaClasse, classeActive,
             <select value={assureurId} onChange={(e) => setAssureurId(e.target.value)} className="w-full rounded-lg border border-roche-200 px-2.5 py-2 text-sm bg-white">
               <option value="">— Non observé —</option>
               {elevesDeLaClasse.map((el) => (
-                <option key={el.id} value={el.id} disabled={el.id === grimpeurId}>
-                  {el.prenom} {el.nom}{el.role ? ` — ${libelleRoleCourt(el.role)}` : ''}
+                <option key={el.id} value={el.id} disabled={el.id === grimpeurId || el.id === conseillerId}>
+                  {el.prenom} {el.nom}{el.equipe ? ` — ${el.equipe}` : ''}
                 </option>
               ))}
             </select>
@@ -244,6 +248,17 @@ export default function TableauPerformanceProf({ elevesDeLaClasse, classeActive,
                 {QUALITES_ASSURAGE.map((q) => <option key={q} value={q}>Assurage {q.toLowerCase()}</option>)}
               </select>
             )}
+          </div>
+          <div>
+            <label className="block text-xs text-roche-600 mb-1">Conseiller observé</label>
+            <select value={conseillerId} onChange={(e) => setConseillerId(e.target.value)} className="w-full rounded-lg border border-roche-200 px-2.5 py-2 text-sm bg-white">
+              <option value="">— Non observé —</option>
+              {elevesDeLaClasse.map((el) => (
+                <option key={el.id} value={el.id} disabled={el.id === grimpeurId || el.id === assureurId}>
+                  {el.prenom} {el.nom}{el.equipe ? ` — ${el.equipe}` : ''}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
 

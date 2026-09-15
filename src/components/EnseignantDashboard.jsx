@@ -15,7 +15,6 @@ import DetailCellule from './DetailCellule.jsx'
 import TableauPerformanceProf from './TableauPerformanceProf.jsx'
 import GestionEquipes from './GestionEquipes.jsx'
 import { rosterOps } from '../utils/rosterOps.js'
-import { libelleRoleCourt } from '../utils/equipes.js'
 import {
   loadAllEvaluations, cleEvaluation, loadAllPassages, loadAllObservations, loadVoies, voiesParDefaut, supprimerPassage,
   loadRosterTeacher, saveRosterTeacher
@@ -261,7 +260,6 @@ export default function EnseignantDashboard({
           key: eleve.id,
           titre: `${eleve.prenom} ${eleve.nom}`,
           equipe: eleve.equipe || '',
-          role: eleve.role || null,
           eleveComplet,
           passages: passagesParEleve[cleEvaluation(eleveComplet)] || []
         }
@@ -637,7 +635,7 @@ export default function EnseignantDashboard({
                                   <div>
                                     <p className="text-sm font-medium text-roche-900">{eleve.prenom} {eleve.nom}</p>
                                     <p className="text-xs text-roche-500 mt-0.5">
-                                      {eleve.equipe && `${eleve.equipe} · ${libelleRoleCourt(eleve.role)}`}
+                                      {eleve.equipe && eleve.equipe}
                                       {eleve.equipe && ' · '}
                                       {evalExistante?.scoreEleve !== undefined && `Auto-éval ${evalExistante.scoreEleve}/20`}
                                       {evalExistante?.scoreEleve !== undefined && evalExistante?.scoreProf !== undefined && ' · '}

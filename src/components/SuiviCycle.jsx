@@ -7,7 +7,7 @@ import { formatDifficulte, parseDifficulte } from '../utils/difficulte.js'
 import { ajouterPassage, supprimerPassage, modifierPassage } from '../firebase.js'
 
 const MODES = ['Moulinette', 'Moulitête', 'Tête']
-const ROLES = ['Grimpeur', 'Assureur']
+const ROLES = ['Grimpeur', 'Assureur', 'Conseiller']
 
 function idPassage() {
   return crypto.randomUUID ? crypto.randomUUID() : `p_${Date.now()}_${Math.random().toString(36).slice(2)}`
@@ -56,8 +56,8 @@ export default function SuiviCycle({ eleve, voies, passages, setPassages, camara
       setErreur('Indique le numéro du dernier mousqueton passé avant d\'enregistrer.')
       return
     }
-    if (role === 'Assureur' && !partenaireId) {
-      setErreur('Indique le camarade que tu as assuré avant d\'enregistrer.')
+    if (role !== 'Grimpeur' && !partenaireId) {
+      setErreur(role === 'Assureur' ? 'Indique le camarade que tu as assuré avant d\'enregistrer.' : 'Indique le camarade que tu as conseillé avant d\'enregistrer.')
       return
     }
     const camaradeChoisi = camarades.find((c) => c.id === partenaireId)
@@ -72,8 +72,8 @@ export default function SuiviCycle({ eleve, voies, passages, setPassages, camara
       sommetAtteint,
       mousqueton: sommetAtteint ? null : Number(mousqueton),
       cordeLovee,
-      partenaireId: role === 'Assureur' ? partenaireId : null,
-      partenaireNom: role === 'Assureur' && camaradeChoisi ? `${camaradeChoisi.prenom} ${camaradeChoisi.nom}` : null
+      partenaireId: role !== 'Grimpeur' ? partenaireId : null,
+      partenaireNom: role !== 'Grimpeur' && camaradeChoisi ? `${camaradeChoisi.prenom} ${camaradeChoisi.nom}` : null
     }
     setEnregistrement(true)
     // Mise à jour optimiste : le passage apparaît tout de suite dans l'historique,
@@ -184,9 +184,9 @@ export default function SuiviCycle({ eleve, voies, passages, setPassages, camara
           </div>
         </div>
 
-        {role === 'Assureur' && (
+        {role !== 'Grimpeur' && (
           <div>
-            <label className="block text-xs text-roche-600 mb-1">Camarade assuré</label>
+            <label className="block text-xs text-roche-600 mb-1">{role === 'Assureur' ? 'Camarade assuré' : 'Camarade conseillé'}</label>
             <select value={partenaireId} onChange={(e) => setPartenaireId(e.target.value)} className="w-full rounded-lg border border-roche-200 px-2.5 py-2 text-sm bg-white">
               <option value="">— Choisir —</option>
               {camarades.map((c) => (
@@ -260,7 +260,7 @@ export default function SuiviCycle({ eleve, voies, passages, setPassages, camara
             <div className="flex items-center justify-between">
               <p className="text-sm font-medium text-roche-900">
                 Voie {p.voie} · {p.difficulte} · {p.role} · {p.mode}
-                {p.role === 'Assureur' && p.partenaireNom ? ` (${p.partenaireNom})` : ''}
+                {p.role !== 'Grimpeur' && p.partenaireNom ? ` (${p.partenaireNom})` : ''}
               </p>
               <button onClick={() => supprimer(p.id)} className="p-1 rounded-full hover:bg-[#fbeeea] text-alerte">
                 <Trash2 size={14} />

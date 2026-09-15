@@ -1,31 +1,23 @@
 import { useState } from 'react'
 import { Users, UserMinus, Check, X, Pencil, Trash2 } from 'lucide-react'
 import { rosterOps } from '../utils/rosterOps.js'
-import { ROLE_LABELS } from '../utils/equipes.js'
 
-// Gestion des équipes de travail (binômes/trinômes) d'une classe : composition, rôles
-// (Assureur, Grimpeur, Conseiller — fusionnés en Assureur/Conseiller pour un binôme), et
-// réorganisation ponctuelle (absence, casse d'un trinôme...).
+// Gestion des équipes de travail (binômes/trinômes) d'une classe : qui travaille avec qui.
+// La composition reste fixe sur tout le cycle, sauf réorganisation ponctuelle (absence,
+// indisponibilité...). Les rôles (Grimpeur, Assureur, Conseiller) ne sont pas figés ici : chaque
+// élève de l'équipe les tient tous à tour de rôle et déclare le sien à chaque passage, dans sa
+// fiche de suivi de cycle (ou lors d'une observation du prof).
 export default function GestionEquipes({ roster, classe, elevesDeLaClasse, onPersisterRoster }) {
   const { equipes, sansEquipe } = rosterOps.equipesDeLaClasse(roster, classe)
 
   const [selection, setSelection] = useState([]) // eleveIds choisis dans le pool "sans équipe"
   const [nomEnCours, setNomEnCours] = useState('')
-  const [assureurChoisi, setAssureurChoisi] = useState('')
-  const [grimpeurChoisi, setGrimpeurChoisi] = useState('')
   const [equipeEnRenommage, setEquipeEnRenommage] = useState(null)
   const [nomRenommage, setNomRenommage] = useState('')
-
-  function nomEleve(id) {
-    const e = elevesDeLaClasse.find((x) => x.id === id)
-    return e ? `${e.prenom} ${e.nom}` : ''
-  }
 
   function reinitialiserFormation() {
     setSelection([])
     setNomEnCours('')
-    setAssureurChoisi('')
-    setGrimpeurChoisi('')
   }
 
   function toggleSelection(id) {
@@ -34,31 +26,13 @@ export default function GestionEquipes({ roster, classe, elevesDeLaClasse, onPer
       if (sel.length >= 3) return sel
       return [...sel, id]
     })
-    setAssureurChoisi('')
-    setGrimpeurChoisi('')
   }
 
-  const peutValider =
-    selection.length === 2 ? !!assureurChoisi : selection.length === 3 ? !!assureurChoisi && !!grimpeurChoisi && assureurChoisi !== grimpeurChoisi : false
+  const peutValider = selection.length === 2 || selection.length === 3
 
   function valider() {
     if (!peutValider) return
-    let membres
-    if (selection.length === 2) {
-      const autre = selection.find((id) => id !== assureurChoisi)
-      membres = [
-        { eleveId: assureurChoisi, role: 'assureur_conseiller' },
-        { eleveId: autre, role: 'grimpeur' }
-      ]
-    } else {
-      const conseillerId = selection.find((id) => id !== assureurChoisi && id !== grimpeurChoisi)
-      membres = [
-        { eleveId: assureurChoisi, role: 'assureur' },
-        { eleveId: grimpeurChoisi, role: 'grimpeur' },
-        { eleveId: conseillerId, role: 'conseiller' }
-      ]
-    }
-    onPersisterRoster(rosterOps.formerEquipe(roster, classe, nomEnCours, membres))
+    onPersisterRoster(rosterOps.formerEquipe(roster, classe, nomEnCours, selection))
     reinitialiserFormation()
   }
 
@@ -71,23 +45,22 @@ export default function GestionEquipes({ roster, classe, elevesDeLaClasse, onPer
     onPersisterRoster(rosterOps.dissoudreEquipe(roster, classe, nom))
   }
 
-  // Renvoie l'équipe dans le pool pour en revoir la composition (membres + rôles) avant de
-  // la reconstituer avec formerEquipe — sert aussi bien à corriger une équipe qu'à en casser
-  // une partiellement (il suffit de ne pas re-sélectionner tout le monde).
+  // Renvoie l'équipe dans le pool pour en revoir la composition avant de la reconstituer avec
+  // formerEquipe — sert aussi bien à corriger une équipe qu'à en casser une partiellement (il
+  // suffit de ne pas re-sélectionner tout le monde).
   function modifier(equipe) {
     onPersisterRoster(rosterOps.dissoudreEquipe(roster, classe, equipe.nom))
     setSelection(equipe.membres.map((m) => m.id))
     setNomEnCours(equipe.nom)
-    setAssureurChoisi('')
-    setGrimpeurChoisi('')
   }
 
   return (
     <div>
       <p className="text-xs text-roche-500 mb-4">
-        Organise les élèves en binômes (Assureur/Conseiller + Grimpeur) ou trinômes (Assureur, Grimpeur, Conseiller).
-        Ces rôles apparaissent dans les tableaux de suivi et de performance. En cas d'absence, retire l'élève
-        concerné de son équipe, puis recompose au besoin les équipes impactées.
+        Compose les binômes ou trinômes de travail : qui pratique ensemble sur le cycle. Au sein de l'équipe, les élèves
+        se répartissent eux-mêmes les rôles (Grimpeur, Assureur, Conseiller) à chaque passage, qu'ils déclarent dans leur
+        fiche de suivi de cycle. En cas d'absence, retire l'élève concerné de son équipe, puis recompose au besoin les
+        équipes impactées.
       </p>
 
       {equipes.length === 0 && sansEquipe.length === 0 && <p className="text-sm text-roche-500">Aucun élève dans cette classe.</p>}
@@ -146,12 +119,9 @@ export default function GestionEquipes({ roster, classe, elevesDeLaClasse, onPer
                 {eq.membres.map((m) => (
                   <div key={m.id} className="flex items-center justify-between text-sm">
                     <span className="text-roche-800">{m.prenom} {m.nom}</span>
-                    <span className="flex items-center gap-2">
-                      <span className="text-[10px] uppercase tracking-wide text-roche-500 bg-roche-50 rounded-full px-2 py-0.5">{ROLE_LABELS[m.role] || '—'}</span>
-                      <button onClick={() => retirer(m.id)} title="Retirer de l'équipe (absence, indisponibilité...)" className="text-roche-400 hover:text-alerte">
-                        <UserMinus size={13} />
-                      </button>
-                    </span>
+                    <button onClick={() => retirer(m.id)} title="Retirer de l'équipe (absence, indisponibilité...)" className="text-roche-400 hover:text-alerte">
+                      <UserMinus size={13} />
+                    </button>
                   </div>
                 ))}
               </div>
@@ -186,46 +156,9 @@ export default function GestionEquipes({ roster, classe, elevesDeLaClasse, onPer
           <div className="bg-white rounded-lg p-3 space-y-2.5">
             <p className="text-xs text-roche-600">
               {selection.length === 1 && "Sélectionne un 2ᵉ élève pour former un binôme (ou un 3ᵉ pour un trinôme)."}
-              {selection.length === 2 && "Binôme : qui est Assureur / Conseiller ? (l'autre sera Grimpeur)"}
-              {selection.length === 3 && 'Trinôme : choisis l\'Assureur puis le Grimpeur (le 3ᵉ devient Conseiller).'}
+              {selection.length === 2 && 'Binôme prêt à être créé.'}
+              {selection.length === 3 && 'Trinôme prêt à être créé.'}
             </p>
-
-            {selection.length >= 2 && (
-              <div>
-                <label className="block text-[11px] text-roche-500 mb-1">Assureur{selection.length === 2 ? ' / Conseiller' : ''}</label>
-                <select
-                  value={assureurChoisi}
-                  onChange={(e) => {
-                    setAssureurChoisi(e.target.value)
-                    setGrimpeurChoisi('')
-                  }}
-                  className="w-full rounded-lg border border-roche-200 px-2.5 py-1.5 text-sm bg-white"
-                >
-                  <option value="">— Choisir —</option>
-                  {selection.map((id) => (
-                    <option key={id} value={id}>{nomEleve(id)}</option>
-                  ))}
-                </select>
-              </div>
-            )}
-
-            {selection.length === 3 && assureurChoisi && (
-              <div>
-                <label className="block text-[11px] text-roche-500 mb-1">Grimpeur</label>
-                <select value={grimpeurChoisi} onChange={(e) => setGrimpeurChoisi(e.target.value)} className="w-full rounded-lg border border-roche-200 px-2.5 py-1.5 text-sm bg-white">
-                  <option value="">— Choisir —</option>
-                  {selection.filter((id) => id !== assureurChoisi).map((id) => (
-                    <option key={id} value={id}>{nomEleve(id)}</option>
-                  ))}
-                </select>
-              </div>
-            )}
-
-            {selection.length === 3 && assureurChoisi && grimpeurChoisi && (
-              <p className="text-xs text-roche-500">
-                Conseiller : <strong>{nomEleve(selection.find((id) => id !== assureurChoisi && id !== grimpeurChoisi))}</strong>
-              </p>
-            )}
 
             <div>
               <label className="block text-[11px] text-roche-500 mb-1">Nom de l'équipe</label>

@@ -45,6 +45,7 @@ export default function DetailCellule({ detail, onFermer, onSupprimer }) {
                 {new Date(p.date).toLocaleDateString('fr-FR')} ·{' '}
                 {p.sommetAtteint ? 'Voie réalisée entièrement' : `Arrêt à la dégaine n°${p.mousqueton}`}
                 {p.role === 'Assureur' && p.partenaireNom ? ` · Camarade assuré : ${p.partenaireNom}` : ''}
+                {p.role === 'Conseiller' && p.partenaireNom ? ` · Grimpeur conseillé : ${p.partenaireNom}` : ''}
                 {p.role === 'Grimpeur' && p.partenaireNom ? ` · Assuré par : ${p.partenaireNom}` : ''}
                 {p.qualite ? ` · Assurage ${p.qualite.toLowerCase()}` : ''}
               </p>
