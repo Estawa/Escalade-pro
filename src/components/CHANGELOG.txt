@@ -1,0 +1,357 @@
+ESCALADE PRO — JOURNAL DES TRANSFORMATIONS
+By C. Guilhem
+======================================
+
+v3.12.0 — Rôles Grimpeur/Assureur/Conseiller déclarés par les élèves à chaque passage
+--------------------------------------
+- Correction importante par rapport à la v3.11.0 : les rôles ne sont plus figés au moment de la
+  composition de l'équipe. Seule la composition (qui travaille avec qui) reste fixe sur le cycle.
+  Les élèves se répartissent eux-mêmes les rôles Grimpeur / Assureur / Conseiller à chaque
+  passage, et le déclarent à chaque fois dans leur fiche de suivi de cycle (un même élève passe
+  régulièrement par les 3 rôles au fil du cycle).
+- Onglet "Équipes" simplifié en conséquence : formation d'un binôme/trinôme = choix des 2 ou 3
+  élèves uniquement, sans attribution de rôle. Modifier la composition, retirer un élève
+  (absence), dissoudre et renommer une équipe fonctionnent comme avant.
+- Fiche de suivi de cycle élève ("Nouveau passage") : ajout du 3e rôle "Conseiller", avec le
+  camarade grimpeur concerné à préciser (comme pour "Assureur"). Nouveau code "C" dans le tableau
+  récapitulatif (ex. "T3/AMT4/CM"), au même principe que le code "A" existant.
+- Tableau de performance (observations du prof) : ajout d'un 3e champ "Conseiller observé" à côté
+  de "Grimpeur observé" et "Assureur observé", pour que le prof puisse aussi consigner ce rôle
+  quand il évalue un élève.
+- Bilans de suivi (fiche prof d'un élève) : ajout du décompte "en conseiller" à côté de "en
+  grimpeur" et "en assureur".
+
+v3.11.0 — Équipes de travail (binômes/trinômes) et rôles Assureur/Grimpeur/Conseiller
+--------------------------------------
+- Nouvel onglet "Équipes" dans l'espace enseignant (à côté de Liste / Tableau de suivi /
+  Performance) : composition des binômes et trinômes de travail, avec attribution des rôles
+  Assureur, Grimpeur et Conseiller (dans un binôme, l'Assureur porte aussi le rôle de Conseiller,
+  affiché "Assureur / Conseiller").
+- Formation d'une équipe en 2 clics : sélection de 2 ou 3 élèves "sans équipe", choix de
+  l'Assureur (et du Grimpeur pour un trinôme, le 3e devenant automatiquement Conseiller).
+- Réorganisation ponctuelle (absence, indisponibilité...) : bouton pour retirer un élève de son
+  équipe sans toucher au reste, "Modifier la composition" pour recomposer une équipe existante
+  (ajouter/retirer des membres, changer les rôles), "Dissoudre" pour libérer tous ses membres.
+  Équipe renommable directement (clic sur son nom).
+- Les rôles apparaissent désormais dans le tableau de suivi de cycle (déclaratif) et le tableau
+  de performance (observé par le prof), sous le nom de chaque élève, ainsi que dans les listes
+  déroulantes "Grimpeur observé"/"Assureur observé" du formulaire d'observation.
+- L'ancien champ "Équipe" en texte libre (saisi à l'ajout ou à la modification d'un élève) est
+  retiré : la composition des équipes et les rôles se gèrent désormais uniquement depuis l'onglet
+  "Équipes".
+
+v3.10.0 — Anti-doublon d'import + déplacement d'élève entre classes
+--------------------------------------
+- Import CSV/Excel/ODS : un élève déjà connu sous une autre classe (ex. sa classe d'origine au
+  lieu du bon groupe classe) n'est plus dupliqué — il est reconnu partout dans le roster, pas
+  seulement dans la classe visée par le fichier. S'il est retrouvé sous une classe différente,
+  il reste où il est et un message récapitule qui est concerné, à corriger manuellement si besoin.
+- Nouveau bouton "Déplacer vers une autre classe" sur chaque élève (onglet Élèves) : change sa
+  classe en conservant son identifiant, donc son PIN et tout son suivi déjà enregistré.
+
+v3.9.0 — Civilité Mr/Mme sur les noms affichés (admin et collègues)
+--------------------------------------
+- Onglet Accès : le nom affiché aux élèves (le tien comme celui de chaque collègue ajouté) se
+  compose désormais d'une civilité (Mr/Mme) choisie dans un menu déroulant + du nom, au lieu
+  d'un texte libre entier (ex. "Mr Guilhem" au lieu de "Christophe Guilhem").
+- Valeur par défaut mise à jour en conséquence ("Mr Guilhem").
+
+v3.8.0 — Identification élève refondue en une seule page (modèle Muscu Pro)
+--------------------------------------
+- L'écran de démarrage bascule désormais automatiquement vers l'identification élève après un
+  bref affichage de l'icône, sans aucun clic à faire.
+- Tout se passe sur UNE SEULE page : partage de l'appli, accès "Connexion prof", puis
+  professeur (menu déroulant), classe, nom et code PIN s'enchaînent verticalement au fur et à
+  mesure des choix, sans changement d'écran.
+- Fin des étapes séparées "Choisis ton professeur" / "Choisis ta classe" / "Trouve ton nom" /
+  écran PIN dédié : tout est regroupé et visible progressivement sur la même page.
+
+v3.7.1 — Correctif : écran d'identification vraiment aligné sur le modèle Muscu Pro
+--------------------------------------
+- Suppression du bandeau du haut (titre/version/bouton Enseignant) sur l'écran de démarrage et
+  sur l'écran d'identification élève : il n'y a plus que le contenu, comme sur Muscu Pro.
+- Le lien "Tu es professeur ? Connexion ici" est désormais aussi présent directement sur l'écran
+  d'identification (à côté du bloc de partage), pas seulement sur l'écran de démarrage.
+- Écran "aucune classe importée" (saisie libre nom/prénom/classe) harmonisé : titre "Qui es-tu ?"
+  et mention d'anonymisation, qui manquaient sur ce cas particulier.
+
+v3.7.0 — Parcours d'entrée uniformisé (standard commun à toutes les applis)
+--------------------------------------
+- Nouvel écran de démarrage à l'ouverture de l'appli : icône + nom de l'appli, bouton
+  "Commencer" et accès discret "Tu es professeur ? Connexion ici".
+- Écran "Qui es-tu ?" : le choix du professeur d'EPS se fait désormais dans un menu déroulant
+  (au lieu d'une liste de boutons plein écran), pour aller plus vite sans avoir à scroller.
+- Ajout de la mention d'anonymisation (par numéro, nom jamais visible des autres élèves) au bas
+  de l'écran d'identification élève.
+- Écran "Connexion professeur" repensé : bloc de partage de l'appli en haut, sélection du nom
+  en menu déroulant (admin + collègues) au lieu du seul code, lien de retour "← Je suis élève".
+
+v3.6.0 — Bases élèves/suivi isolées par enseignant, Vue globale, réinitialisation de PIN
+--------------------------------------
+- Chaque enseignant (admin comme collègue) a désormais sa propre base d'élèves et de suivi
+  (classes, passages, observations, évaluations), totalement isolée de celle des autres : un
+  collègue ajouté ne voit plus les élèves d'un autre, ni ceux de l'administrateur.
+- Le roster (classes + élèves) est désormais stocké sur Firebase (et non plus uniquement sur
+  l'appareil), un document par enseignant, synchronisé sur tous ses appareils.
+- Connexion élève : ajout d'une étape "Choisis ton professeur d'EPS" avant le choix de la
+  classe (sautée automatiquement s'il n'y a qu'un seul professeur), pour que deux enseignants
+  puissent utiliser le même nom de classe sans conflit.
+- Nouvel onglet "Vue globale" (administrateur uniquement) : accès complet (lecture/écriture)
+  à l'espace élèves/suivi de n'importe quel collègue via un sélecteur déroulant, distinct de
+  l'onglet "Mes classes" (toujours le propre espace de l'administrateur) pour ne pas les
+  confondre.
+- Onglet Accès : bouton "Réinitialiser le PIN" pour chaque collègue (nouveau code choisi par
+  l'administrateur, sans perte des élèves ni du suivi déjà enregistrés par ce collègue), et nom
+  de l'administrateur modifiable (c'est ce nom que les élèves voient dans la liste des
+  professeurs à la connexion).
+
+v3.5.0 — Accès administrateur/collègues, verrou d'édition et médias agrandis
+--------------------------------------
+- Nouveau système d'accès partagé (Firebase, donc valable sur tous les
+  appareils, pas seulement le tien) : ton code reste l'unique clé qui donne
+  accès à la MODIFICATION du Référentiel. Tu peux désormais ajouter des
+  collègues depuis un nouvel onglet "Accès" (visible uniquement pour toi) :
+  chacun reçoit un code PIN personnel que tu choisis et lui transmets ;
+  avec ce code il accède à l'espace enseignant (classes, suivi, voies,
+  évaluations) mais voit le Référentiel en lecture seule, sans aucun bouton
+  de modification. Tu peux retirer l'accès d'un collègue à tout moment.
+  "Modifier mon code d'accès" a été déplacé dans cet onglet "Accès".
+- Nouveau verrou d'édition dans l'onglet "Référentiel" (pour toi
+  uniquement) : même en étant connecté à l'espace enseignant, il faut
+  ressaisir ton code pour déverrouiller la modification des encarts,
+  textes, photos et vidéos — protection contre un effacement ou une
+  modification par erreur. Le verrou se referme automatiquement dès que tu
+  quittes l'onglet Référentiel ou l'espace enseignant.
+- Un bouton "Se déconnecter" a été ajouté dans l'espace enseignant.
+- Les photos et vidéos du Référentiel (démonstration, phases, images)
+  sont désormais cliquables aussi bien côté élève que côté prof : elles
+  s'ouvrent en plein écran (agrandies) directement dans l'appli au lieu
+  d'ouvrir un nouvel onglet. Les liens YouTube, Vimeo et Google Drive sont
+  intégrés directement ; les autres formats vidéo (mp4, webm...) sont lus
+  avec le lecteur du téléphone ; en dernier recours, un bouton permet
+  d'ouvrir le lien dans un nouvel onglet.
+
+v3.4.0 — Référentiel entièrement modifiable
+--------------------------------------
+- Dans l'espace enseignant, onglet "Référentiel" : chaque encart (titre et
+  texte) est désormais modifiable via un bouton "Modifier le texte" ;
+  la mise à jour apparaît aussitôt sur la fiche des élèves (contenu
+  commun aux deux vues).
+- Possibilité d'ajouter une ou plusieurs images à un encart, en plus de la
+  vidéo qui existait déjà (bouton "+ Ajouter une image" ; les images sont
+  automatiquement redimensionnées/compressées avant enregistrement).
+- Possibilité d'ajouter de nouveaux encarts à un module existant
+  (bouton "+ Ajouter un encart" en fin de chaque module) et de supprimer
+  un encart (bouton "✕" en haut à droite de chaque encart, avec
+  confirmation).
+
+v3.3.0 — 4e sous-colonne de couleurs et difficulté jusqu'à 8
+--------------------------------------
+- Chaque voie peut désormais avoir une difficulté définie pour 4 couleurs
+  de prise utilisées, en plus de 3, 2 et 1 (paramétrage, tableaux de suivi
+  et de performance, formulaires de saisie des élèves et du prof).
+- Le sélecteur de difficulté va maintenant jusqu'à 8 (au lieu de 7).
+
+v3.2.1 — Correctif : sélection de la difficulté des voies
+--------------------------------------
+- Correction d'un bug dans la configuration des voies (espace enseignant,
+  onglet "Référentiel") : la sélection du chiffre, de la lettre ou du "+"
+  d'une difficulté disparaissait aussitôt tant que les trois éléments
+  n'étaient pas tous renseignés, rendant impossible tout changement de
+  difficulté. La sélection en cours est désormais conservée à l'écran
+  jusqu'à ce qu'elle soit complète.
+
+v3.2.0 — Tableau de performance de cycle (observé par le prof)
+--------------------------------------
+- Nouveau second tableau, réservé à l'espace enseignant (onglet "Élèves &
+  suivi" > "Performance (observée)") : même présentation que le tableau de
+  suivi (17 voies × 3 sous-colonnes, groupé par équipe), mais alimenté
+  uniquement par ce que le prof a lui-même vu et saisi — pas par les
+  déclarations des élèves.
+- Formulaire "Nouvelle observation" : voie, couleurs de prise, mode
+  (Tête/Moulinette/Moulitête), hauteur atteinte, plus le choix du
+  grimpeur observé et/ou de l'assureur observé (les deux à la fois si
+  c'est la même grimpe), avec une qualité d'assurage (Insuffisant/
+  Correct/Maîtrisé) pour l'assureur. Génère les mêmes codes compacts que
+  le tableau déclaratif (T3, AMT4...), affichés en gras si la voie a été
+  réalisée entièrement.
+- Sur la fiche de suivi de chaque élève (espace enseignant), un nouveau
+  bilan "Observations du prof (performance)" s'ajoute au bilan déclaratif
+  existant, et une nouvelle "Note de performance de cycle" (/20, basée sur
+  ce que le prof a observé) s'ajoute à côté de la "Note de suivi de
+  cycle" existante (renommée pour préciser qu'elle reste basée sur le
+  déclaratif élève) — les deux notes sont désormais clairement distinctes
+  et alimentent chacune une partie différente de la note générale.
+
+v3.1.0 — Tableau récapitulatif de suivi de cycle
+--------------------------------------
+- Nouveau tableau récapitulatif de suivi de cycle dans l'espace enseignant
+  (onglet "Élèves & suivi" > "Tableau de suivi") : 1 ligne par élève de la
+  classe, regroupées visuellement par équipe (binôme/trinôme), 17 voies en
+  colonnes, chacune divisée en 3 sous-colonnes (voie réalisée à 3, 2 puis
+  1 couleur(s) de prise), avec en en-tête le nom de la couleur et sa
+  difficulté (ex. "Rouge 5b+").
+- Chaque case affiche un code compact généré automatiquement à partir des
+  passages enregistrés par l'élève : lettre de technique (T = Tête,
+  M = Moulinette, MT = Moulitête), préfixe "A" si le passage a été réalisé
+  en tant qu'Assureur, numéro de la dernière dégaine passée si la voie n'a
+  pas été terminée (rien si elle a été réalisée entièrement). Plusieurs
+  passages dans une même case sont concaténés avec "/", ex. "T3/AMT4".
+  Cliquer sur une case affiche le détail (date, rôle, mode, dégaine,
+  camarade assuré le cas échéant).
+- La fiche de suivi de l'élève affiche désormais le même tableau, limité à
+  ses propres réalisations, en plus de son historique détaillé déjà
+  existant.
+- Nouveau champ "camarade assuré" dans le formulaire de passage, affiché
+  quand le rôle choisi est "Assureur" (liste des élèves de la même classe).
+- Nouveau champ "équipe" (binôme/trinôme) sur la fiche de chaque élève,
+  modifiable depuis l'espace enseignant (vue "Liste" > "Modifier"), utilisé
+  pour le regroupement visuel dans le tableau de suivi.
+- La configuration des voies (onglet "Voies") permet désormais de saisir,
+  en plus de la difficulté, le nom de la couleur de prise pour 3, 2 puis
+  1 couleur(s) utilisée(s) ; l'ancienne configuration (difficulté seule,
+  sans nom de couleur) reste compatible et s'affiche simplement sans nom.
+
+v3.0.3 — Identifiants Firebase renseignés
+--------------------------------------
+- Le projet Firebase de Christophe (escalade-pro-3cd6d) n'avait en fait
+  jamais été configuré : c'était la cause réelle des enregistrements qui
+  ne se faisaient pas (voies, passages, mais aussi vidéos et
+  évaluations). Les vrais identifiants sont maintenant renseignés dans
+  `src/firebase.js`.
+- Rappel : la base Firestore doit être créée (pas Realtime Database) et
+  ses règles de sécurité doivent autoriser les 4 collections utilisées
+  (voir README).
+
+v3.0.2 — Rendre l'enregistrement d'un passage visible et fiable
+--------------------------------------
+- Après un audit complet du code d'enregistrement, aucune anomalie
+  logique n'a été trouvée dans le calcul de la difficulté ou dans
+  l'écriture du passage ; en revanche, si l'enregistrement échoue côté
+  serveur (le plus probable : règles de sécurité Firestore qui
+  n'autorisent pas encore les nouvelles collections `escalade_config` et
+  `escalade_passages` créées pour le Suivi de Cycle), l'échec pouvait
+  passer inaperçu. Voir le README pour les règles Firestore à vérifier.
+- Un passage apparaît désormais immédiatement dans l'historique de
+  l'élève dès qu'il clique sur "Enregistrer ce passage" (mise à jour
+  optimiste), avec un message de confirmation clair ("✓ Passage
+  enregistré : voie X en Y").
+- Si l'enregistrement échoue réellement côté serveur, le passage est
+  retiré de l'historique et un message d'erreur explicite s'affiche
+  ("le passage n'a PAS été sauvegardé"), au lieu d'échouer
+  silencieusement.
+- Mêmes garanties pour la suppression d'un passage et pour la case
+  "corde rangée en lovant" : réaction immédiate à l'écran, annulée
+  proprement en cas d'échec côté serveur.
+
+v3.0.1 — Correctif de lenteur sur "Suivi de Cycle"
+--------------------------------------
+- L'onglet "Suivi de Cycle" rechargeait entièrement les voies et
+  l'historique des passages à chaque fois qu'on cliquait dessus (recharge
+  serveur à chaque changement d'onglet). Ces données sont désormais
+  chargées une seule fois à la connexion de l'élève, puis conservées :
+  changer d'onglet est maintenant instantané.
+- La case "Corde rangée en lovant" faisait jusqu'à 4 allers-retours
+  serveur (suppression puis recréation du passage). Elle ne fait plus
+  qu'une seule mise à jour, avec réaction immédiate à l'écran.
+- La suppression d'un passage réagit aussi immédiatement à l'écran,
+  avant confirmation du serveur.
+
+v3.0.0 — Suivi de cycle sur les 17 voies et code enseignant modifiable
+--------------------------------------
+- Espace enseignant : nouvelle fonction "Modifier le code d'accès" (code
+  actuel + nouveau code + confirmation), remplace le code fixe 4242 codé
+  en dur. Le code par défaut reste 4242 tant qu'il n'a pas été changé.
+- Espace élève réorganisé en deux onglets principaux :
+  - "Connaissance" : reprend tout ce qui existait avant (sous-onglets
+    Référentiel et Ma auto-évaluation), inchangé.
+  - "Suivi de Cycle" : nouvelle application de suivi des passages sur
+    les 17 voies du mur.
+- Pour chaque passage, l'élève renseigne : la voie (1 à 17), son rôle
+  (Grimpeur ou Assureur), le mode (Moulinette, Moulitête ou Tête), le
+  nombre de couleurs de prise utilisées (1, 2 ou 3), la difficulté de la
+  voie (chiffre 3 à 7 + lettre a/b/c + "+" optionnel, ex. "5a+"), la
+  hauteur atteinte (sommet/chaîne haute, ou numéro du dernier mousqueton
+  passé si non atteint), et peut valider que la corde a été rangée en
+  lovant. Chaque passage est enregistré et daté ; l'élève retrouve tout
+  son historique de cycle pour se souvenir de ses réussites et varier
+  ses voies.
+- Nouvel onglet enseignant "Voies" : configuration des 17 voies du mur,
+  avec la difficulté correspondant à 1, 2 ou 3 couleurs de prise pour
+  chacune. Cette configuration sert à pré-remplir (en suggestion,
+  modifiable) la difficulté saisie par l'élève selon la voie et le
+  nombre de couleurs choisies.
+- Dans l'onglet "Élèves & suivi", chaque élève dispose maintenant de
+  deux panneaux séparés : "Évaluer (référentiel)" (comme avant) et
+  "Suivi de cycle" (nouveau), avec :
+  - un bilan des passages enregistrés (nombre de passages, réussites au
+    sommet, voies différentes, répartition grimpeur/assureur, meilleure
+    réussite),
+  - la saisie de l'épreuve finale de cycle : passage Grimpeur (voie,
+    difficulté, réussite) et passage Assureur (voie assurée, qualité
+    d'assurage), chacun noté séparément,
+  - une note de suivi de cycle sur 20, saisie librement par l'enseignant
+    à partir de l'ensemble de ces informations.
+- La fiche de chaque élève dans "Élèves & suivi" affiche désormais aussi
+  le nombre de passages enregistrés et, si elle existe, la note de
+  suivi de cycle.
+
+v2.0.0 — Connexion élève, import de classes et refonte de l'espace enseignant
+--------------------------------------
+- Nouvelle icône de l'application (montagne + mousqueton), déclinée en
+  favicon, icône PWA (192/512) et icône iOS.
+- Connexion élève reprise à l'identique du principe de Course de Durée Pro :
+  l'élève choisit sa classe, trouve son nom dans la liste, puis saisit son
+  code PIN personnel (défini par lui-même lors de sa toute première
+  connexion). Isolation stricte par élève/classe.
+- Import des listes de classe repris à l'identique de Course de Durée Pro
+  (lui-même aligné sur le moteur d'EPS Pro) : import CSV / Excel (.xlsx) /
+  ODS, aperçu brut du fichier, association manuelle des colonnes (Nom,
+  Prénom, Nom+Prénom combiné, Classe, Sexe), gestion de l'encodage et du
+  séparateur, modes "ajouter" et "remplacer" par classe.
+- Espace enseignant protégé par code PIN, réorganisé en deux onglets :
+  "Référentiel" (gestion des vidéos par item, comme avant) et
+  "Élèves & suivi" (classes, import, ajout/modification/suppression
+  d'élève, suppression de classe entière, réinitialisation de PIN,
+  évaluation notée par élève).
+- L'évaluation n'est plus liée à un nom tapé librement : elle est
+  désormais rattachée à l'identité de l'élève connecté (auto-évaluation
+  élève) ou à l'élève sélectionné dans la classe (évaluation notée par le
+  professeur, sur 20). Les deux évaluations sont conservées séparément et
+  affichées dans la fiche de l'élève.
+- "Escalade Pro by C. Guilhem" et le numéro de version affichés en
+  discret à côté du titre sur chaque page (dans l'en-tête).
+- Passage de l'application à la même base technique que les autres
+  applications (React/Vite/Tailwind, PWA installable via vite-plugin-pwa).
+- Ce fichier CHANGELOG.txt est désormais inclus et mis à jour dans chaque
+  zip livré.
+
+v1.0.0 — Première version
+--------------------------------------
+- Création de l'application "Escalade Pro", structurée comme Gym Pro
+  (React/Vite, GitHub, Vercel, Firebase).
+- Référentiel organisé en 5 modules : Sécurité & vérification visuelle,
+  Installation dans le baudrier, Nœuds (nœud de huit, nœud de vache, nœud
+  du pendu, nœud d'arrêt), Assurage à 5 points, Lovage et rangement de
+  la corde.
+- Ajout et gestion de vidéos par item (mode Prof) : une vidéo de
+  démonstration + vidéos d'apprentissage par phases, modifiables à tout
+  moment, sauvegardées sur Firebase (Firestore).
+- Évaluation :
+  - Mode Élève : auto-évaluation par case à cocher, compétence par
+    compétence, avec décompte des compétences maîtrisées.
+  - Mode Prof : évaluation à 3 niveaux par item (Non acquis / En cours /
+    Acquis), calcul automatique d'une note globale sur 20.
+  - Les évaluations sont enregistrées sur Firebase avec le nom de l'élève.
+- Mode Élève / Mode Prof (bascule simple, sans code d'accès pour l'instant).
+- Version affichée en discret à côté du titre, avec la mention "By C. Guilhem".
+- Bandeau d'avertissement rappelant que le contenu pédagogique de base est
+  à vérifier et compléter avant utilisation avec les élèves.
+
+À prévoir pour les prochaines versions
+--------------------------------------
+- Compléter/vérifier le contenu du "nœud du pendu".
+- Fiche de notes par classe exportable vers EPS Pro.
+- Import de classe directement depuis EPS Pro (comme pour Course de
+  Durée Pro), en plus du fichier CSV/ODS/Excel.
+- Ajout éventuel d'autres modules (rappel, techniques de progression...).
