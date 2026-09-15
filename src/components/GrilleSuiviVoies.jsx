@@ -1,11 +1,12 @@
 import { Fragment } from 'react'
 import { codeCourtCellule, passagesCellule, celluleAuMoinsUneReussite } from '../utils/passages.js'
+import { libelleRoleCourt } from '../utils/equipes.js'
 
 const SOUS_COLONNES = [4, 3, 2, 1] // ordre d'affichage : 4 couleurs, puis 3, puis 2, puis 1
 
 // Tableau générique de suivi de cycle : 1 ligne par élève (ou 1 seule ligne côté élève),
 // 17 voies en colonnes, chacune divisée en 3 sous-colonnes (3/2/1 couleur(s) de prise).
-// lignes : [{ key, titre, equipe?, passages: [] }]
+// lignes : [{ key, titre, equipe?, role?, passages: [] }]
 // onCellClick(ligne, numeroVoie, nbCouleurs, passagesDeLaCellule)
 export default function GrilleSuiviVoies({ voies, lignes, onCellClick, grouperParEquipe = false }) {
   const lignesTriees = grouperParEquipe
@@ -81,6 +82,7 @@ export default function GrilleSuiviVoies({ voies, lignes, onCellClick, grouperPa
                 <tr className="border-t border-roche-100">
                   <td className="sticky left-0 bg-white px-2 py-1.5 font-medium text-roche-900 whitespace-nowrap">
                     {ligne.titre}
+                    {ligne.role && <span className="block text-[9px] font-normal uppercase tracking-wide text-roche-400">{libelleRoleCourt(ligne.role)}</span>}
                   </td>
                   {voies.map((v) =>
                     SOUS_COLONNES.map((n) => {

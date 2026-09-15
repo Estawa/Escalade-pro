@@ -4,6 +4,7 @@ import DifficulteSelect from './DifficulteSelect.jsx'
 import GrilleSuiviVoies from './GrilleSuiviVoies.jsx'
 import DetailCellule from './DetailCellule.jsx'
 import { formatDifficulte, parseDifficulte } from '../utils/difficulte.js'
+import { libelleRoleCourt } from '../utils/equipes.js'
 import { cleEvaluation, ajouterObservationEvenement, supprimerObservation } from '../firebase.js'
 
 const MODES = ['Moulinette', 'Moulitête', 'Tête']
@@ -54,6 +55,7 @@ export default function TableauPerformanceProf({ elevesDeLaClasse, classeActive,
           key: eleve.id,
           titre: `${eleve.prenom} ${eleve.nom}`,
           equipe: eleve.equipe || '',
+          role: eleve.role || null,
           eleveComplet: ec,
           passages: observationsParEleve[cleEvaluation(ec)] || []
         }
@@ -221,7 +223,9 @@ export default function TableauPerformanceProf({ elevesDeLaClasse, classeActive,
             <select value={grimpeurId} onChange={(e) => setGrimpeurId(e.target.value)} className="w-full rounded-lg border border-roche-200 px-2.5 py-2 text-sm bg-white">
               <option value="">— Non observé —</option>
               {elevesDeLaClasse.map((el) => (
-                <option key={el.id} value={el.id} disabled={el.id === assureurId}>{el.prenom} {el.nom}</option>
+                <option key={el.id} value={el.id} disabled={el.id === assureurId}>
+                  {el.prenom} {el.nom}{el.role ? ` — ${libelleRoleCourt(el.role)}` : ''}
+                </option>
               ))}
             </select>
           </div>
@@ -230,7 +234,9 @@ export default function TableauPerformanceProf({ elevesDeLaClasse, classeActive,
             <select value={assureurId} onChange={(e) => setAssureurId(e.target.value)} className="w-full rounded-lg border border-roche-200 px-2.5 py-2 text-sm bg-white">
               <option value="">— Non observé —</option>
               {elevesDeLaClasse.map((el) => (
-                <option key={el.id} value={el.id} disabled={el.id === grimpeurId}>{el.prenom} {el.nom}</option>
+                <option key={el.id} value={el.id} disabled={el.id === grimpeurId}>
+                  {el.prenom} {el.nom}{el.role ? ` — ${libelleRoleCourt(el.role)}` : ''}
+                </option>
               ))}
             </select>
             {assureurId && (

@@ -13,7 +13,9 @@ import EspaceAcces from './EspaceAcces.jsx'
 import GrilleSuiviVoies from './GrilleSuiviVoies.jsx'
 import DetailCellule from './DetailCellule.jsx'
 import TableauPerformanceProf from './TableauPerformanceProf.jsx'
+import GestionEquipes from './GestionEquipes.jsx'
 import { rosterOps } from '../utils/rosterOps.js'
+import { libelleRoleCourt } from '../utils/equipes.js'
 import {
   loadAllEvaluations, cleEvaluation, loadAllPassages, loadAllObservations, loadVoies, voiesParDefaut, supprimerPassage,
   loadRosterTeacher, saveRosterTeacher
@@ -162,20 +164,18 @@ export default function EnseignantDashboard({
   const [editionReferentielDeverrouillee, setEditionReferentielDeverrouillee] = useState(false)
   const [importOuvert, setImportOuvert] = useState(false)
   const [classeSelectionnee, setClasseSelectionnee] = useState(null)
-  const [vueSuivi, setVueSuivi] = useState('liste') // liste | tableau | performance
+  const [vueSuivi, setVueSuivi] = useState('liste') // liste | tableau | performance | equipes
   const [eleveOuvert, setEleveOuvert] = useState(null)
   const [eleveEnEdition, setEleveEnEdition] = useState(null)
   const [editNom, setEditNom] = useState('')
   const [editPrenom, setEditPrenom] = useState('')
   const [editSexe, setEditSexe] = useState('')
-  const [editEquipe, setEditEquipe] = useState('')
   const [eleveEnDeplacement, setEleveEnDeplacement] = useState(null)
   const [classeCibleDeplacement, setClasseCibleDeplacement] = useState('')
   const [ajoutEleveOuvert, setAjoutEleveOuvert] = useState(false)
   const [nouvelEleveNom, setNouvelEleveNom] = useState('')
   const [nouvelElevePrenom, setNouvelElevePrenom] = useState('')
   const [nouvelEleveSexe, setNouvelEleveSexe] = useState('')
-  const [nouvelEleveEquipe, setNouvelEleveEquipe] = useState('')
   const [nouvelleClasseOuverte, setNouvelleClasseOuverte] = useState(false)
   const [nouvelleClasseNom, setNouvelleClasseNom] = useState('')
   const [evaluations, setEvaluations] = useState({})
@@ -261,6 +261,7 @@ export default function EnseignantDashboard({
           key: eleve.id,
           titre: `${eleve.prenom} ${eleve.nom}`,
           equipe: eleve.equipe || '',
+          role: eleve.role || null,
           eleveComplet,
           passages: passagesParEleve[cleEvaluation(eleveComplet)] || []
         }
@@ -335,24 +336,22 @@ export default function EnseignantDashboard({
     setEditNom(eleve.nom)
     setEditPrenom(eleve.prenom)
     setEditSexe(eleve.sexe || '')
-    setEditEquipe(eleve.equipe || '')
   }
 
   function enregistrerEdition(eleveId) {
     if (!editNom.trim() || !editPrenom.trim() || classeActive === null) return
-    persisterRoster(rosterOps.modifierEleve(roster, classeActive, eleveId, { nom: editNom, prenom: editPrenom, sexe: editSexe, equipe: editEquipe }))
+    persisterRoster(rosterOps.modifierEleve(roster, classeActive, eleveId, { nom: editNom, prenom: editPrenom, sexe: editSexe }))
     setEleveEnEdition(null)
   }
 
   function ajouterEleve(e) {
     e.preventDefault()
     if (!nouvelEleveNom.trim() || !nouvelElevePrenom.trim() || classeActive === null) return
-    const { roster: next } = rosterOps.ajouterEleveManuel(roster, classeActive, nouvelEleveNom, nouvelElevePrenom, nouvelEleveSexe || null, nouvelEleveEquipe || null)
+    const { roster: next } = rosterOps.ajouterEleveManuel(roster, classeActive, nouvelEleveNom, nouvelElevePrenom, nouvelEleveSexe || null)
     persisterRoster(next)
     setNouvelEleveNom('')
     setNouvelElevePrenom('')
     setNouvelEleveSexe('')
-    setNouvelEleveEquipe('')
     setAjoutEleveOuvert(false)
   }
 
@@ -535,6 +534,12 @@ export default function EnseignantDashboard({
                         >
                           <Eye size={12} /> Performance (observée)
                         </button>
+                        <button
+                          onClick={() => setVueSuivi('equipes')}
+                          className={`flex items-center gap-1 text-[11px] font-medium px-2.5 py-1 rounded-full transition ${vueSuivi === 'equipes' ? 'bg-roche-800 text-white' : 'text-roche-600'}`}
+                        >
+                          <Users size={12} /> Équipes
+                        </button>
                       </div>
                       {vueSuivi === 'liste' && (
                         <button
@@ -550,9 +555,9 @@ export default function EnseignantDashboard({
                   {vueSuivi === 'tableau' && (
                     <div>
                       <p className="text-xs text-roche-500 mb-2">
-                        Vue d'ensemble de la classe, groupée par équipe (binôme/trinôme). Déclaratif : ce que chaque élève
-                        a lui-même enregistré. Clique sur une case pour voir le détail des passages. Renseigne l'équipe de
-                        chaque élève depuis la vue "Liste" (bouton "Modifier").
+                        Vue d'ensemble de la classe, groupée par équipe (binôme/trinôme), avec le rôle de chaque élève.
+                        Déclaratif : ce que chaque élève a lui-même enregistré. Clique sur une case pour voir le détail des
+                        passages. Compose ou réorganise les équipes depuis l'onglet "Équipes".
                       </p>
                       <GrilleSuiviVoies
                         voies={voies}
@@ -571,6 +576,15 @@ export default function EnseignantDashboard({
                       voies={voies}
                       observationsParEleve={observationsParEleve}
                       setObservationsParEleve={setObservationsParEleve}
+                    />
+                  )}
+
+                  {vueSuivi === 'equipes' && (
+                    <GestionEquipes
+                      roster={roster}
+                      classe={classeActive}
+                      elevesDeLaClasse={elevesDeLaClasse}
+                      onPersisterRoster={persisterRoster}
                     />
                   )}
 
@@ -600,12 +614,6 @@ export default function EnseignantDashboard({
                             <option value="F">F</option>
                             <option value="M">M</option>
                           </select>
-                          <input
-                            value={nouvelEleveEquipe}
-                            onChange={(e) => setNouvelEleveEquipe(e.target.value)}
-                            placeholder="Équipe"
-                            className="flex-1 rounded-lg border border-roche-200 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-roche-500"
-                          />
                           <button type="submit" className="bg-roche-800 hover:bg-roche-700 text-white text-sm font-medium px-3.5 py-1.5 rounded-lg transition">
                             Ajouter
                           </button>
@@ -629,6 +637,8 @@ export default function EnseignantDashboard({
                                   <div>
                                     <p className="text-sm font-medium text-roche-900">{eleve.prenom} {eleve.nom}</p>
                                     <p className="text-xs text-roche-500 mt-0.5">
+                                      {eleve.equipe && `${eleve.equipe} · ${libelleRoleCourt(eleve.role)}`}
+                                      {eleve.equipe && ' · '}
                                       {evalExistante?.scoreEleve !== undefined && `Auto-éval ${evalExistante.scoreEleve}/20`}
                                       {evalExistante?.scoreEleve !== undefined && evalExistante?.scoreProf !== undefined && ' · '}
                                       {evalExistante?.scoreProf !== undefined && `Note prof ${evalExistante.scoreProf}/20`}
@@ -672,12 +682,6 @@ export default function EnseignantDashboard({
                                           <option value="F">F</option>
                                           <option value="M">M</option>
                                         </select>
-                                        <input
-                                          value={editEquipe}
-                                          onChange={(e) => setEditEquipe(e.target.value)}
-                                          placeholder="Équipe"
-                                          className="flex-1 rounded-lg border border-roche-200 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-roche-500"
-                                        />
                                         <div className="flex gap-1.5">
                                           <button type="submit" className="p-1.5 rounded-full bg-roche-800 text-white hover:bg-roche-700">
                                             <Check size={14} />
@@ -693,7 +697,7 @@ export default function EnseignantDashboard({
                                         onClick={() => ouvrirEdition(eleve)}
                                         className="flex items-center gap-1 text-[11px] font-medium text-roche-700 border border-roche-200 rounded-full px-2.5 py-1 hover:bg-white"
                                       >
-                                        <Pencil size={12} /> Modifier nom/prénom/équipe
+                                        <Pencil size={12} /> Modifier nom/prénom
                                       </button>
                                       <button
                                         onClick={() => reinitialiserPin(eleve.id)}
