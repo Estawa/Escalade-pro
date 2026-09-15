@@ -159,5 +159,78 @@ export const rosterOps = {
   verifierPin: (roster, classe, eleveId, pin) => {
     const eleve = rosterOps.trouverEleve(roster, classe, eleveId)
     return !!eleve && eleve.pin === pin
+  },
+
+  // ---------- Gestion des équipes (binômes/trinômes de travail) ----------
+  // Chaque élève porte 2 champs : equipe (nom du groupe, ex "Équipe 3") et role
+  // ('assureur' | 'grimpeur' | 'conseiller' pour un trinôme, 'assureur_conseiller' | 'grimpeur'
+  // pour un binôme). Les deux sont null tant que l'élève n'est rattaché à aucune équipe.
+
+  // Regroupe les élèves d'une classe par équipe, triés (équipes par nom, membres par rôle :
+  // assureur(/conseiller) puis grimpeur puis conseiller), et renvoie à part les élèves sans équipe.
+  equipesDeLaClasse: (roster, classe) => {
+    const eleves = rosterOps.getElevesClasse(roster, classe)
+    const groupes = {}
+    const sansEquipe = []
+    eleves.forEach((e) => {
+      if (e.equipe) {
+        if (!groupes[e.equipe]) groupes[e.equipe] = []
+        groupes[e.equipe].push(e)
+      } else {
+        sansEquipe.push(e)
+      }
+    })
+    const ordreRole = { assureur: 0, assureur_conseiller: 0, grimpeur: 1, conseiller: 2 }
+    const equipes = Object.keys(groupes)
+      .sort((a, b) => a.localeCompare(b, 'fr'))
+      .map((nom) => ({
+        nom,
+        membres: groupes[nom].slice().sort((a, b) => (ordreRole[a.role] ?? 9) - (ordreRole[b.role] ?? 9))
+      }))
+    return { equipes, sansEquipe }
+  },
+
+  // Prochain nom d'équipe libre ("Équipe 1", "Équipe 2"...) pour une classe donnée.
+  prochainNomEquipe: (roster, classe) => {
+    const { equipes } = rosterOps.equipesDeLaClasse(roster, classe)
+    const utilises = new Set(equipes.map((eq) => eq.nom))
+    let n = 1
+    while (utilises.has(`Équipe ${n}`)) n++
+    return `Équipe ${n}`
+  },
+
+  // Constitue (ou reconstitue) une équipe : affecte equipe=nom et le rôle donné à chacun des
+  // membres listés. membres : [{ eleveId, role }] (2 pour un binôme, 3 pour un trinôme).
+  // N'affecte aucun autre élève de la classe.
+  formerEquipe: (roster, classe, nom, membres) => {
+    const nomFinal = (nom || '').trim() || rosterOps.prochainNomEquipe(roster, classe)
+    const roles = new Map(membres.map((m) => [m.eleveId, m.role]))
+    const next = { ...(roster || {}) }
+    next[classe] = (next[classe] || []).map((e) => (roles.has(e.id) ? { ...e, equipe: nomFinal, role: roles.get(e.id) } : e))
+    return next
+  },
+
+  // Renvoie tous les membres d'une équipe dans le pool "sans équipe" (equipe=null, role=null).
+  dissoudreEquipe: (roster, classe, nomEquipe) => {
+    const next = { ...(roster || {}) }
+    next[classe] = (next[classe] || []).map((e) => (e.equipe === nomEquipe ? { ...e, equipe: null, role: null } : e))
+    return next
+  },
+
+  // Retire un seul élève de son équipe (ex. absence ponctuelle) sans toucher au reste de
+  // l'équipe ; celle-ci peut ensuite être recomposée via formerEquipe si besoin.
+  retirerDeEquipe: (roster, classe, eleveId) => {
+    const next = { ...(roster || {}) }
+    next[classe] = (next[classe] || []).map((e) => (e.id === eleveId ? { ...e, equipe: null, role: null } : e))
+    return next
+  },
+
+  // Renomme une équipe existante (tous ses membres actuels) sans toucher à sa composition.
+  renommerEquipe: (roster, classe, ancienNom, nouveauNom) => {
+    const nom = (nouveauNom || '').trim()
+    if (!nom || nom === ancienNom) return roster
+    const next = { ...(roster || {}) }
+    next[classe] = (next[classe] || []).map((e) => (e.equipe === ancienNom ? { ...e, equipe: nom } : e))
+    return next
   }
 }
