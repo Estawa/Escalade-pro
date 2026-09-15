@@ -2,6 +2,25 @@ ESCALADE PRO — JOURNAL DES TRANSFORMATIONS
 By C. Guilhem
 ======================================
 
+v3.11.0 — Équipes de travail (binômes/trinômes) et rôles Assureur/Grimpeur/Conseiller
+--------------------------------------
+- Nouvel onglet "Équipes" dans l'espace enseignant (à côté de Liste / Tableau de suivi /
+  Performance) : composition des binômes et trinômes de travail, avec attribution des rôles
+  Assureur, Grimpeur et Conseiller (dans un binôme, l'Assureur porte aussi le rôle de Conseiller,
+  affiché "Assureur / Conseiller").
+- Formation d'une équipe en 2 clics : sélection de 2 ou 3 élèves "sans équipe", choix de
+  l'Assureur (et du Grimpeur pour un trinôme, le 3e devenant automatiquement Conseiller).
+- Réorganisation ponctuelle (absence, indisponibilité...) : bouton pour retirer un élève de son
+  équipe sans toucher au reste, "Modifier la composition" pour recomposer une équipe existante
+  (ajouter/retirer des membres, changer les rôles), "Dissoudre" pour libérer tous ses membres.
+  Équipe renommable directement (clic sur son nom).
+- Les rôles apparaissent désormais dans le tableau de suivi de cycle (déclaratif) et le tableau
+  de performance (observé par le prof), sous le nom de chaque élève, ainsi que dans les listes
+  déroulantes "Grimpeur observé"/"Assureur observé" du formulaire d'observation.
+- L'ancien champ "Équipe" en texte libre (saisi à l'ajout ou à la modification d'un élève) est
+  retiré : la composition des équipes et les rôles se gèrent désormais uniquement depuis l'onglet
+  "Équipes".
+
 v3.10.0 — Anti-doublon d'import + déplacement d'élève entre classes
 --------------------------------------
 - Import CSV/Excel/ODS : un élève déjà connu sous une autre classe (ex. sa classe d'origine au
