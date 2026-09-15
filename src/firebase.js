@@ -228,16 +228,19 @@ async function ajouterObservationUnitaire(eleve, observation) {
   return nouvelleListe;
 }
 
-// Enregistre une observation de grimpe pour le grimpeur observé et/ou pour l'assureur observé
-// (les deux partagent le même evenementId pour rester identifiables comme une seule grimpe vue).
-// Renvoie { grimpeur: nouvelleListe|null, assureur: nouvelleListe|null }.
-export async function ajouterObservationEvenement({ grimpeurEleve, grimpeurObs, assureurEleve, assureurObs }) {
-  const resultat = { grimpeur: null, assureur: null };
+// Enregistre une observation de grimpe pour le grimpeur observé et/ou l'assureur observé et/ou
+// le conseiller observé (tous partagent le même evenementId pour rester identifiables comme une
+// seule grimpe vue). Renvoie { grimpeur: nouvelleListe|null, assureur: nouvelleListe|null, conseiller: nouvelleListe|null }.
+export async function ajouterObservationEvenement({ grimpeurEleve, grimpeurObs, assureurEleve, assureurObs, conseillerEleve, conseillerObs }) {
+  const resultat = { grimpeur: null, assureur: null, conseiller: null };
   if (grimpeurEleve && grimpeurObs) {
     resultat.grimpeur = await ajouterObservationUnitaire(grimpeurEleve, grimpeurObs);
   }
   if (assureurEleve && assureurObs) {
     resultat.assureur = await ajouterObservationUnitaire(assureurEleve, assureurObs);
+  }
+  if (conseillerEleve && conseillerObs) {
+    resultat.conseiller = await ajouterObservationUnitaire(conseillerEleve, conseillerObs);
   }
   return resultat;
 }
