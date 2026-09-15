@@ -2,6 +2,25 @@ ESCALADE PRO — JOURNAL DES TRANSFORMATIONS
 By C. Guilhem
 ======================================
 
+v3.12.0 — Rôles Grimpeur/Assureur/Conseiller déclarés par les élèves à chaque passage
+--------------------------------------
+- Correction importante par rapport à la v3.11.0 : les rôles ne sont plus figés au moment de la
+  composition de l'équipe. Seule la composition (qui travaille avec qui) reste fixe sur le cycle.
+  Les élèves se répartissent eux-mêmes les rôles Grimpeur / Assureur / Conseiller à chaque
+  passage, et le déclarent à chaque fois dans leur fiche de suivi de cycle (un même élève passe
+  régulièrement par les 3 rôles au fil du cycle).
+- Onglet "Équipes" simplifié en conséquence : formation d'un binôme/trinôme = choix des 2 ou 3
+  élèves uniquement, sans attribution de rôle. Modifier la composition, retirer un élève
+  (absence), dissoudre et renommer une équipe fonctionnent comme avant.
+- Fiche de suivi de cycle élève ("Nouveau passage") : ajout du 3e rôle "Conseiller", avec le
+  camarade grimpeur concerné à préciser (comme pour "Assureur"). Nouveau code "C" dans le tableau
+  récapitulatif (ex. "T3/AMT4/CM"), au même principe que le code "A" existant.
+- Tableau de performance (observations du prof) : ajout d'un 3e champ "Conseiller observé" à côté
+  de "Grimpeur observé" et "Assureur observé", pour que le prof puisse aussi consigner ce rôle
+  quand il évalue un élève.
+- Bilans de suivi (fiche prof d'un élève) : ajout du décompte "en conseiller" à côté de "en
+  grimpeur" et "en assureur".
+
 v3.11.0 — Équipes de travail (binômes/trinômes) et rôles Assureur/Grimpeur/Conseiller
 --------------------------------------
 - Nouvel onglet "Équipes" dans l'espace enseignant (à côté de Liste / Tableau de suivi /
