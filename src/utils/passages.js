@@ -5,17 +5,19 @@ import { rangDifficulte } from './difficulte.js'
 //
 // Convention (validée avec C. Guilhem) :
 //  - Lettre de technique : Tête -> "T", Moulinette -> "M", Moulitête -> "MT"
-//  - Préfixe "A" si le passage a été réalisé en tant qu'Assureur (sinon aucun préfixe = Grimpeur)
+//  - Préfixe "A" si le passage a été réalisé en tant qu'Assureur, "C" en tant que Conseiller
+//    (sinon aucun préfixe = Grimpeur)
 //  - Si la voie n'a pas été terminée : numéro de la dernière dégaine passée, accolé sans séparateur
 //  - Si la voie a été terminée entièrement : aucun numéro
 //  - Plusieurs passages dans une même case (même voie, même nombre de couleurs) sont
 //    concaténés avec "/", par exemple "T3/AMT4"
 
 export const MODE_CODES = { Moulinette: 'M', Moulitête: 'MT', Tête: 'T' }
+const PREFIXES_ROLE = { Assureur: 'A', Conseiller: 'C' }
 
 export function codeCourtPassage(p) {
   const base = MODE_CODES[p.mode] || '?'
-  const prefixe = p.role === 'Assureur' ? 'A' : ''
+  const prefixe = PREFIXES_ROLE[p.role] || ''
   const suffixe = p.sommetAtteint ? '' : String(p.mousqueton ?? '')
   return `${prefixe}${base}${suffixe}`
 }
@@ -50,9 +52,10 @@ export function statsPassages(passages) {
   const voiesDistinctes = new Set(liste.map((p) => p.voie)).size
   const enGrimpeur = liste.filter((p) => p.role === 'Grimpeur').length
   const enAssureur = liste.filter((p) => p.role === 'Assureur').length
+  const enConseiller = liste.filter((p) => p.role === 'Conseiller').length
   const difficulteMax = liste
     .filter((p) => p.sommetAtteint)
     .reduce((max, p) => Math.max(max, rangDifficulte(p.difficulte)), 0)
   const meilleureVoie = liste.find((p) => p.sommetAtteint && rangDifficulte(p.difficulte) === difficulteMax)
-  return { total, reussis, voiesDistinctes, enGrimpeur, enAssureur, meilleureVoie }
+  return { total, reussis, voiesDistinctes, enGrimpeur, enAssureur, enConseiller, meilleureVoie }
 }
