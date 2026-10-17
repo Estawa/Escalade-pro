@@ -10,6 +10,8 @@
 // BAC PRO — AFLP 1 /7 (degré + cotation) + AFLP 2 /5 (degré, puis valeur dans la plage).
 //   Fil de séquence /8 : AFLP 4 + AFLP 5, plages de points (décision P9).
 // Moulitête : impossible de dépasser le degré 3 (GT : 9/12 max ; Pro : 5/7 max à l'AFLP 1).
+// Moulinette (choix de l'équipe EPS, v3.14.1) : note bloquée à 7/12 en GT (AFL 1) et à 4/7 en Pro
+// (AFLP 1 ; l'AFLP 2 n'est pas plafonné, comme pour la moulitête).
 
 import { parseDifficulte } from './difficulte.js'
 
@@ -58,7 +60,15 @@ export const PLAGES_PRO_AFLP2 = { 1: [0, 0.5], 2: [1, 2], 3: [2.5, 4], 4: [4.5, 
 export const MODES_GRIMPE = [
   { valeur: 'tete', libelle: 'En tête' },
   { valeur: 'moulitete', libelle: 'En moulitête (degré 3 max)' },
+  { valeur: 'moulinette', libelle: 'En moulinette (7/12 GT, 4/7 Pro max)' },
 ]
+
+// Plafond de la note en moulinette : AFL 1 /12 en GT, AFLP 1 /7 en Pro.
+export const PLAFOND_MOULINETTE = { gt: 7, pro: 4 }
+
+export function libelleMode(mode) {
+  return mode === 'moulitete' ? 'moulitête' : mode === 'moulinette' ? 'moulinette' : 'tête'
+}
 
 export function degreEffectif(degre, mode) {
   if (!degre) return null
@@ -185,18 +195,22 @@ export function calculerNoteBac(typeBac, saisie, sexe) {
     const [p2, p3] = pointsRepartition(s.repartition)
     const afl2 = pointsFixes(p2, s.afl2Degre)
     const afl3 = s.afl3Role ? pointsFixes(p3, s.afl3Degre) : null
-    const fin = e1 == null && e2 == null ? null : r2((e1 ?? 0) + (e2 ?? 0))
+    const brut = e1 == null && e2 == null ? null : r2((e1 ?? 0) + (e2 ?? 0))
+    const plafonne = s.mode === 'moulinette' && brut != null && brut > PLAFOND_MOULINETTE.gt
+    const fin = plafonne ? PLAFOND_MOULINETTE.gt : brut
     const fil = afl2 == null && afl3 == null ? null : r2((afl2 ?? 0) + (afl3 ?? 0))
-    return { e1, e2, afl2, afl3, fin, fil, total: fin == null && fil == null ? null : r2((fin ?? 0) + (fil ?? 0)), p2, p3 }
+    return { e1, e2, afl2, afl3, fin, finBrut: brut, plafonne, fil, total: fin == null && fil == null ? null : r2((fin ?? 0) + (fil ?? 0)), p2, p3 }
   }
-  const aflp1 = pointsAvecCotation('pro', s.aflp1Degre, s.cotation, sexe, s.mode)
+  const aflp1Brut = pointsAvecCotation('pro', s.aflp1Degre, s.cotation, sexe, s.mode)
+  const plafonne = s.mode === 'moulinette' && aflp1Brut != null && aflp1Brut > PLAFOND_MOULINETTE.pro
+  const aflp1 = plafonne ? PLAFOND_MOULINETTE.pro : aflp1Brut
   const aflp2 = typeof s.aflp2Note === 'number' ? s.aflp2Note : null
   const [p4, p5] = pointsRepartition(s.repartition)
   const aflp4 = typeof s.aflp4Note === 'number' ? s.aflp4Note : null
   const aflp5 = typeof s.aflp5Note === 'number' ? s.aflp5Note : null
   const fin = aflp1 == null && aflp2 == null ? null : r2((aflp1 ?? 0) + (aflp2 ?? 0))
   const fil = aflp4 == null && aflp5 == null ? null : r2((aflp4 ?? 0) + (aflp5 ?? 0))
-  return { aflp1, aflp2, aflp4, aflp5, fin, fil, total: fin == null && fil == null ? null : r2((fin ?? 0) + (fil ?? 0)), p4, p5 }
+  return { aflp1, aflp1Brut, plafonne, aflp2, aflp4, aflp5, fin, fil, total: fin == null && fil == null ? null : r2((fin ?? 0) + (fil ?? 0)), p4, p5 }
 }
 
 export function formatDuree(ms) {

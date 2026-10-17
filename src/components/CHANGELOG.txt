@@ -2,6 +2,12 @@ ESCALADE PRO — JOURNAL DES TRANSFORMATIONS
 By C. Guilhem
 ======================================
 
+v3.14.1 — Note du bac : grimpe en moulinette
+--------------------------------------
+- Nouveau mode « En moulinette » dans la note du bac et dans l'outil Épreuve : la note est
+  bloquée à 7/12 en Bac GT (AFL 1) et à 4/7 en Bac Pro (AFLP 1 ; l'AFLP 2 reste sur 5).
+  La note calculée avant plafond est affichée pour information.
+
 v3.14.0 — Note du bac selon le protocole du lycée (GT ou Pro) et outil « Épreuve »
 --------------------------------------
 - Nouveau bouton « Note du bac » dans la fiche de chaque élève (onglet Élèves & suivi), calculée

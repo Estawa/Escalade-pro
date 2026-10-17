@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Dices, Play, Flag, AlertTriangle, RotateCcw, Save, Timer } from 'lucide-react'
 import { cleEvaluation, saveEvaluation } from '../firebase.js'
-import { formatDuree } from '../utils/bacEscalade.js'
+import { formatDuree, libelleMode } from '../utils/bacEscalade.js'
 
 // Outil « Épreuve » du bac (v3.14.0), protocoles GT et Pro du lycée :
 // - le candidat désigne 2 voies d'un même niveau de cotation, l'une est tirée au sort ;
@@ -175,7 +175,7 @@ export default function EpreuveEscalade({ elevesDeLaClasse, classeActive, teache
         </select>
         {epreuveExistante && (
           <p className="text-[11px] text-roche-600">
-            Déjà enregistrée : {epreuveExistante.libelleVoie || `voie ${epreuveExistante.voie}`} en {epreuveExistante.mode === 'moulitete' ? 'moulitête' : 'tête'} ·{' '}
+            Déjà enregistrée : {epreuveExistante.libelleVoie || `voie ${epreuveExistante.voie}`} en {libelleMode(epreuveExistante.mode)} ·{' '}
             {epreuveExistante.sortie ? `sortie en ${formatDuree(epreuveExistante.tempsMs)}` : `non sortie (${epreuveExistante.motifArret || 'arrêt'})`} · {epreuveExistante.chutes || 0} chute(s). Une nouvelle épreuve la remplacera.
           </p>
         )}
@@ -188,6 +188,7 @@ export default function EpreuveEscalade({ elevesDeLaClasse, classeActive, teache
           <select value={mode} onChange={(e) => setMode(e.target.value)} disabled={!!debut} className="rounded-lg border border-roche-200 px-2.5 py-1.5 text-sm bg-white">
             <option value="tete">En tête</option>
             <option value="moulitete">En moulitête (degré 3 max)</option>
+            <option value="moulinette">En moulinette (7/12 GT, 4/7 Pro max)</option>
           </select>
           <button
             onClick={tirer}

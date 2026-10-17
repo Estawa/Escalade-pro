@@ -1,6 +1,6 @@
 import { ArrowLeft, GraduationCap } from 'lucide-react'
 
-export const APP_VERSION = '3.14.0'
+export const APP_VERSION = '3.14.1'
 
 export default function Header({ title, onBack, onEnseignant, showEnseignant = true }) {
   return (

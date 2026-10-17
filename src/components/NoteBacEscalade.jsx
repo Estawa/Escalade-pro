@@ -23,6 +23,7 @@ import {
   DEGRES_PRO_AFLP5,
   calculerNoteBac,
   formatDuree,
+  libelleMode,
 } from '../utils/bacEscalade.js'
 
 const DEGRES_PRO_AFLP1 = DEGRES_GT_E1
@@ -156,7 +157,7 @@ export default function NoteBacEscalade({ eleve, sexe, typeBac, evaluationExista
         <p className="text-xs font-semibold text-roche-700 uppercase tracking-wide">Voie de l'épreuve</p>
         {epreuve && (
           <p className="text-[11px] text-roche-600 flex items-center gap-1">
-            <Timer size={12} /> Épreuve enregistrée : voie {epreuve.voie ?? '—'} en {epreuve.difficulte || '—'} ({epreuve.mode === 'moulitete' ? 'moulitête' : 'tête'}) ·{' '}
+            <Timer size={12} /> Épreuve enregistrée : voie {epreuve.voie ?? '—'} en {epreuve.difficulte || '—'} ({libelleMode(epreuve.mode)}) ·{' '}
             {epreuve.sortie ? `sortie en ${formatDuree(epreuve.tempsMs)}` : `non sortie (${epreuve.motifArret || 'arrêt'})`} · {epreuve.chutes || 0} chute{(epreuve.chutes || 0) > 1 ? 's' : ''}
           </p>
         )}
@@ -174,6 +175,12 @@ export default function NoteBacEscalade({ eleve, sexe, typeBac, evaluationExista
           </p>
         )}
         {s.mode === 'moulitete' && <p className="text-[11px] text-roche-600">Moulitête : degré 3 maximum ({gt ? '9/12' : '5/7 à l’AFLP 1'}).</p>}
+        {s.mode === 'moulinette' && (
+          <p className="text-[11px] text-roche-600">
+            Moulinette : note bloquée à {gt ? '7/12 (AFL 1)' : '4/7 (AFLP 1)'}.
+            {note.plafonne && ` Note calculée ${fmt(gt ? note.finBrut : note.aflp1Brut)}, ramenée à ${gt ? '7' : '4'}.`}
+          </p>
+        )}
       </div>
 
       {gt ? (
