@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import {
   Upload, ChevronDown, ChevronUp, KeyRound, UserX, Pencil, UserPlus,
   FolderPlus, FolderX, Check, X, ClipboardList, Mountain, Table, List, Eye,
-  Share2, Copy, ChevronRight, Lock, Unlock, LogOut, Users, ArrowRightLeft
+  Share2, Copy, ChevronRight, Lock, Unlock, LogOut, Users, ArrowRightLeft, Timer, GraduationCap
 } from 'lucide-react'
 import Referentiel from './Referentiel.jsx'
 import ImportEleves from './ImportEleves.jsx'
@@ -14,6 +14,8 @@ import GrilleSuiviVoies from './GrilleSuiviVoies.jsx'
 import DetailCellule from './DetailCellule.jsx'
 import TableauPerformanceProf from './TableauPerformanceProf.jsx'
 import GestionEquipes from './GestionEquipes.jsx'
+import EpreuveEscalade from './EpreuveEscalade.jsx'
+import NoteBacEscalade from './NoteBacEscalade.jsx'
 import { rosterOps } from '../utils/rosterOps.js'
 import {
   loadAllEvaluations, cleEvaluation, loadAllPassages, loadAllObservations, loadVoies, voiesParDefaut, supprimerPassage,
@@ -550,6 +552,12 @@ export default function EnseignantDashboard({
                           <Eye size={12} /> Performance (observée)
                         </button>
                         <button
+                          onClick={() => setVueSuivi('epreuve')}
+                          className={`flex items-center gap-1 text-[11px] font-medium px-2.5 py-1 rounded-full transition ${vueSuivi === 'epreuve' ? 'bg-roche-800 text-white' : 'text-roche-600'}`}
+                        >
+                          <Timer size={12} /> Épreuve
+                        </button>
+                        <button
                           onClick={() => setVueSuivi('equipes')}
                           className={`flex items-center gap-1 text-[11px] font-medium px-2.5 py-1 rounded-full transition ${vueSuivi === 'equipes' ? 'bg-roche-800 text-white' : 'text-roche-600'}`}
                         >
@@ -591,6 +599,19 @@ export default function EnseignantDashboard({
                       voies={voies}
                       observationsParEleve={observationsParEleve}
                       setObservationsParEleve={setObservationsParEleve}
+                    />
+                  )}
+
+                  {vueSuivi === 'epreuve' && (
+                    <EpreuveEscalade
+                      elevesDeLaClasse={elevesDeLaClasse}
+                      classeActive={classeActive}
+                      teacherId={teacherIdCourant}
+                      voies={voies}
+                      evaluations={evaluations}
+                      onEnregistre={(ec, patch) =>
+                        setEvaluations((ev) => ({ ...ev, [cleEvaluation(ec)]: { ...ev[cleEvaluation(ec)], ...patch } }))
+                      }
                     />
                   )}
 
@@ -659,6 +680,10 @@ export default function EnseignantDashboard({
                                       {evalExistante?.scoreProf !== undefined && `Note prof ${evalExistante.scoreProf}/20`}
                                       {evalExistante?.noteCycle != null && ` · Suivi ${evalExistante.noteCycle}/20`}
                                       {evalExistante?.notePerformance != null && ` · Performance ${evalExistante.notePerformance}/20`}
+                                      {(() => {
+                                        const bac = evalExistante?.[typesBac[classeActive] === 'gt' ? 'bacGT' : 'bacPro']
+                                        return typesBac[classeActive] && bac?.noteCalculee != null ? ` · Bac ${String(bac.noteCalculee).replace('.', ',')}/20` : ''
+                                      })()}
                                       {evalExistante?.scoreEleve === undefined && evalExistante?.scoreProf === undefined && evalExistante?.noteCycle == null && evalExistante?.notePerformance == null && 'Pas encore évalué'}
                                       {' · '}{(passagesParEleve[cleEvaluation(eleveComplet)] || []).length} passage{(passagesParEleve[cleEvaluation(eleveComplet)] || []).length > 1 ? 's' : ''}
                                       {!eleve.pin && ' · PIN non défini'}
@@ -739,6 +764,12 @@ export default function EnseignantDashboard({
                                         <Mountain size={12} /> {panneauOuvertPour?.id === eleve.id && panneauOuvertPour?.type === 'cycle' ? 'Fermer' : 'Suivi de cycle'}
                                       </button>
                                       <button
+                                        onClick={() => setPanneauOuvertPour(panneauOuvertPour?.id === eleve.id && panneauOuvertPour?.type === 'bac' ? null : { id: eleve.id, type: 'bac' })}
+                                        className="flex items-center gap-1 text-[11px] font-medium text-roche-700 border border-roche-200 rounded-full px-2.5 py-1 hover:bg-white"
+                                      >
+                                        <GraduationCap size={12} /> {panneauOuvertPour?.id === eleve.id && panneauOuvertPour?.type === 'bac' ? 'Fermer' : 'Note du bac'}
+                                      </button>
+                                      <button
                                         onClick={() => supprimerEleve(eleve.id)}
                                         className="flex items-center gap-1 text-[11px] font-medium text-alerte border border-[#f0d3ca] rounded-full px-2.5 py-1 hover:bg-white"
                                       >
@@ -779,6 +810,21 @@ export default function EnseignantDashboard({
                                       <div className="bg-white rounded-xl p-3">
                                         <EvaluationProf
                                           eleve={eleveComplet}
+                                          evaluationExistante={evalExistante}
+                                          onEnregistre={(patch) =>
+                                            setEvaluations((ev) => ({ ...ev, [cleEvaluation(eleveComplet)]: { ...ev[cleEvaluation(eleveComplet)], ...patch } }))
+                                          }
+                                        />
+                                      </div>
+                                    )}
+
+                                    {panneauOuvertPour?.id === eleve.id && panneauOuvertPour?.type === 'bac' && (
+                                      <div className="bg-white rounded-xl p-3">
+                                        <NoteBacEscalade
+                                          key={`${eleve.id}-${typesBac[classeActive] || ''}-${evalExistante?.epreuve?.date || ''}`}
+                                          eleve={eleveComplet}
+                                          sexe={eleve.sexe}
+                                          typeBac={typesBac[classeActive] || null}
                                           evaluationExistante={evalExistante}
                                           onEnregistre={(patch) =>
                                             setEvaluations((ev) => ({ ...ev, [cleEvaluation(eleveComplet)]: { ...ev[cleEvaluation(eleveComplet)], ...patch } }))

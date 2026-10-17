@@ -2,6 +2,29 @@ ESCALADE PRO — JOURNAL DES TRANSFORMATIONS
 By C. Guilhem
 ======================================
 
+v3.14.0 — Note du bac selon le protocole du lycée (GT ou Pro) et outil « Épreuve »
+--------------------------------------
+- Nouveau bouton « Note du bac » dans la fiche de chaque élève (onglet Élèves & suivi), calculée
+  selon le type de bac de la classe :
+  · Bac GT : AFL 1 /12 = élément 1 (lecture et analyse de la voie) /6 + élément 2 (efficience du
+    déplacement et mousquetonnage) /6. Pour chaque élément : degré atteint, puis ajustement par
+    la cotation de la voie (grilles filles et garçons du protocole).
+  · Bac Pro : AFLP 1 /7 (degré ajusté par la cotation) + AFLP 2 /5 (degré puis valeur dans la
+    plage).
+  · Moulitête : degré 3 maximum (GT 9/12, Pro 5/7 à l'AFLP 1).
+  · Fil de séquence /8 avec la répartition 2/6, 4/4 ou 6/2 : GT = AFL 2 (carnet) + AFL 3 (un
+    rôle parmi assureur en tête, assureur en moulitête, coach-contre-assureur), points fixes ;
+    Pro = AFLP 4 + AFLP 5, plages de points (meilleur degré atteint).
+- Les notes /20 déjà saisies (référentiel, suivi de cycle, performance) sont conservées et
+  affichées à côté ; la note du bac est rangée à part (champs bacGT / bacPro), donc changer le
+  type de bac de la classe n'efface rien. Elle apparaît aussi dans la ligne de l'élève.
+- Nouvel onglet « Épreuve » dans Élèves & suivi : choix du candidat et de ses 2 voies (même
+  cotation), tirage au sort, tête ou moulitête, chrono de 6 minutes, compteur de chutes (la 2e
+  arrête l'épreuve), arrêt pour erreur de mousquetonnage, temps de sortie enregistré. La voie,
+  la cotation et le mode sont repris automatiquement dans la note du bac.
+- Les couleurs de prises restent utilisées pour le suivi et la progression, pas pour la note
+  du bac.
+
 v3.13.0 — Type d'évaluation par classe : Bac GT ou Bac Pro
 --------------------------------------
 - Nouveau réglage par classe : type d'évaluation « Bac GT » (général et technologique) ou
