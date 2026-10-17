@@ -2,6 +2,16 @@ ESCALADE PRO — JOURNAL DES TRANSFORMATIONS
 By C. Guilhem
 ======================================
 
+v3.13.0 — Type d'évaluation par classe : Bac GT ou Bac Pro
+--------------------------------------
+- Nouveau réglage par classe : type d'évaluation « Bac GT » (général et technologique) ou
+  « Bac Pro », dans l'espace enseignant (onglet Élèves & suivi), à côté du nombre d'élèves de la
+  classe. Le type s'affiche aussi sur le bouton de chaque classe (GT, Pro ou ?).
+- Données existantes intactes : le réglage est rangé à part (champ typesBac du document de
+  l'enseignant) ; les élèves, passages, observations et évaluations ne sont pas modifiés. Une
+  classe sans réglage s'affiche « Type de bac à préciser ».
+- La sauvegarde des classes ne réécrit plus que la liste des classes, ce qui préserve ce réglage.
+
 v3.12.0 — Rôles Grimpeur/Assureur/Conseiller déclarés par les élèves à chaque passage
 --------------------------------------
 - Correction importante par rapport à la v3.11.0 : les rôles ne sont plus figés au moment de la

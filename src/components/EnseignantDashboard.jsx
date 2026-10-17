@@ -17,8 +17,9 @@ import GestionEquipes from './GestionEquipes.jsx'
 import { rosterOps } from '../utils/rosterOps.js'
 import {
   loadAllEvaluations, cleEvaluation, loadAllPassages, loadAllObservations, loadVoies, voiesParDefaut, supprimerPassage,
-  loadRosterTeacher, saveRosterTeacher
+  loadRosterTeacher, saveRosterTeacher, loadTypesBacTeacher, saveTypeBacClasse
 } from '../firebase.js'
+import { ChoixTypeBac, libelleTypeBac } from './TypeBac.jsx'
 
 function PartagerApp() {
   const [ouvert, setOuvert] = useState(false)
@@ -198,6 +199,7 @@ export default function EnseignantDashboard({
   // --- Roster (classes + élèves) de l'espace actuellement affiché, chargé/sauvegardé sur
   // Firebase, isolé par enseignant (teacherId). ---
   const [roster, setRoster] = useState({})
+  const [typesBac, setTypesBac] = useState({}) // v3.13.0 : { [classe]: "gt" | "pro" }
   const [chargementRoster, setChargementRoster] = useState(true)
   const [erreurRoster, setErreurRoster] = useState('')
 
@@ -209,6 +211,9 @@ export default function EnseignantDashboard({
     }
     let annule = false
     setChargementRoster(true)
+    loadTypesBacTeacher(teacherIdCourant)
+      .then((t) => { if (!annule) setTypesBac(t) })
+      .catch(() => { if (!annule) setTypesBac({}) })
     loadRosterTeacher(teacherIdCourant)
       .then((r) => { if (!annule) setRoster(r) })
       .catch((e) => { if (!annule) setErreurRoster('Chargement des classes impossible : ' + e.message) })
@@ -217,6 +222,13 @@ export default function EnseignantDashboard({
     setEleveOuvert(null)
     return () => { annule = true }
   }, [teacherIdCourant])
+
+  // Type d'évaluation d'une classe : seul ce réglage est enregistré, rien d'autre n'est touché.
+  function choisirTypeBac(classe, typeBac) {
+    setTypesBac((prev) => ({ ...prev, [classe]: typeBac }))
+    if (!teacherIdCourant) return
+    saveTypeBacClasse(teacherIdCourant, classe, typeBac).catch((e) => setErreurRoster('Échec de la sauvegarde du type de bac : ' + e.message))
+  }
 
   function persisterRoster(next) {
     setRoster(next)
@@ -506,12 +518,17 @@ export default function EnseignantDashboard({
                         className={`shrink-0 text-xs font-medium px-3 py-1.5 rounded-full border transition ${classeActive === c ? 'bg-roche-800 text-white border-roche-800' : 'border-roche-200 text-roche-600'}`}
                       >
                         {c || '(sans nom)'}
+                        <span className="opacity-60"> · {typesBac[c] ? libelleTypeBac(typesBac[c]).replace('Bac ', '') : '?'}</span>
                       </button>
                     ))}
                   </div>
 
                   <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
-                    <p className="text-xs text-roche-500">{elevesDeLaClasse.length} élève{elevesDeLaClasse.length > 1 ? 's' : ''}</p>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className="text-xs text-roche-500">{elevesDeLaClasse.length} élève{elevesDeLaClasse.length > 1 ? 's' : ''} ·</p>
+                      <span className={`text-xs font-medium ${typesBac[classeActive] ? 'text-roche-700' : 'text-red-600'}`}>{libelleTypeBac(typesBac[classeActive])}</span>
+                      <ChoixTypeBac valeur={typesBac[classeActive]} onChange={(v) => choisirTypeBac(classeActive, v)} />
+                    </div>
                     <div className="flex items-center gap-3 flex-wrap">
                       <div className="flex gap-1 bg-roche-50 rounded-full p-1">
                         <button

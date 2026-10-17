@@ -204,7 +204,21 @@ export async function loadRosterTeacher(teacherId) {
 }
 
 export async function saveRosterTeacher(teacherId, roster) {
-  await setDoc(doc(db, ROSTER_COLLECTION, teacherId), { classes: roster });
+  // mergeFields (v3.13.0) : seul le champ "classes" est réécrit ; les autres champs du document
+  // (notamment "typesBac") sont conservés.
+  await setDoc(doc(db, ROSTER_COLLECTION, teacherId), { classes: roster }, { mergeFields: ['classes'] });
+}
+
+// --- Type d'évaluation de chaque classe (v3.13.0) : { [classe]: "gt" | "pro" }, rangé dans le
+// même document que le roster de l'enseignant, champ "typesBac". Une classe absente = type
+// « à préciser » ; les élèves, passages, observations et évaluations ne sont jamais modifiés. ---
+export async function loadTypesBacTeacher(teacherId) {
+  const snap = await getDoc(doc(db, ROSTER_COLLECTION, teacherId));
+  return snap.exists() && snap.data().typesBac ? snap.data().typesBac : {};
+}
+
+export async function saveTypeBacClasse(teacherId, classe, typeBac) {
+  await setDoc(doc(db, ROSTER_COLLECTION, teacherId), { typesBac: { [classe]: typeBac } }, { merge: true });
 }
 
 // --- Observations du prof : ce que l'enseignant a vu et jugé lui-même (grimpeur ET/OU assureur),
